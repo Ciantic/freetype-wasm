@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+  <canvas id="main"></canvas>
+  <script type="module">
+    import FreetypeInit from "./ft.js";
+    let Freetype = await FreetypeInit();
+    async function createFontFromUrl(url) {
+      const font = await fetch(url);
+      const buffer = await font.arrayBuffer();
+      const face = Freetype.LoadFontFromBytes(new Uint8Array(buffer));
+      return face;
+    }
+
+    const font = await createFontFromUrl("OSP-DIN.ttf");
+    console.log("Loaded font", font);
+
+    console.log("Next is already loaded error:");
+    const font2 = await createFontFromUrl("OSP-DIN.ttf");
+
+    Freetype.SetFont("OSP-DIN", "DIN");
+    Freetype.SetSize(32 * 64, 0, 100, 0);
+
+    console.log(
+      "Load char flags: ",
+      Freetype.FT_LOAD_RENDER | Freetype.FT_LOAD_TARGET_LIGHT
+    );
+
+    Freetype.LoadChars(
+      "ab",
+      Freetype.FT_LOAD_RENDER | Freetype.FT_LOAD_TARGET_LIGHT,
+      (glyph) => {
+        console.log("glyph", glyph);
+      }
+    );
+    Freetype.UnloadFont("OSP-DIN");
+
+    console.log("Set should fail");
+    Freetype.SetFont("OSP-DIN", "DIN");
+
+    // console.log("Face: ", foo.LoadFace([5, 10]));
+
+    // foo.Write("OSP-DIN", "DIN", "test");
+  </script>
+</html>

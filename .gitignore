@@ -1,0 +1,6 @@
+freetype2
+emsdk
+src/build
+*.ttf
+example/*
+!example/index.html
