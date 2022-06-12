@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <string.h>
-#include <math.h>
 
-#include <ft2build.h>
 #include <freetype/freetype.h>
 
 #include <emscripten/emscripten.h>
@@ -134,23 +132,44 @@ bool SetFont(std::string faceName, std::string styleName)
     return current_face != 0;
 }
 
-bool SetSize(FT_F26Dot6 char_width, FT_F26Dot6 char_height, FT_UInt horz_resolution, FT_UInt vert_resolution)
+FT_Size_Metrics SetCharSize(FT_F26Dot6 char_width, FT_F26Dot6 char_height, FT_UInt horz_resolution, FT_UInt vert_resolution)
 {
 
     if (current_face == NULL)
     {
         fprintf(stderr, "FreeType: Unable to set size, font is not set. Use `SetFont` first.");
-        return false;
+        return current_face->size->metrics;
     }
 
     FT_Error error = FT_Set_Char_Size(current_face, char_width, char_height, horz_resolution, vert_resolution);
     if (error)
     {
         fprintf(stderr, "FreeType: Error setting size.\n");
-        return false;
+        return current_face->size->metrics;
     }
 
-    return true;
+    return current_face->size->metrics;
+}
+
+FT_Size_Metrics SetPixelSize(
+    FT_UInt pixel_width,
+    FT_UInt pixel_height)
+{
+
+    if (current_face == NULL)
+    {
+        fprintf(stderr, "FreeType: Unable to set size, font is not set. Use `SetFont` first.");
+        return current_face->size->metrics;
+    }
+
+    FT_Error error = FT_Set_Pixel_Sizes(current_face, pixel_width, pixel_height);
+    if (error)
+    {
+        fprintf(stderr, "FreeType: Error setting size.\n");
+        return current_face->size->metrics;
+    }
+
+    return current_face->size->metrics;
 }
 
 // TODO: Is transform any good? In docs it says:
@@ -183,6 +202,11 @@ void LoadChars(std::string chars, FT_Int32 load_flags, emscripten::val cb)
         FT_Error error = FT_Load_Char(current_face, c, load_flags);
         cb(*current_face->glyph);
     }
+}
+
+emscripten::val Size_Getter(const FT_FaceRec &v)
+{
+    return emscripten::val(*v.size);
 }
 
 emscripten::val Encoding_Getter(const FT_CharMapRec &v)
@@ -237,7 +261,9 @@ EMSCRIPTEN_BINDINGS(my_module)
     function("LoadFontFromBytes", &LoadFontFromBytes, allow_raw_pointers());
     function("UnloadFont", &UnloadFont);
     function("SetFont", &SetFont);
-    function("SetSize", &SetSize);
+    function("SetCharSize", &SetCharSize);
+    function("SetPixelSize", &SetPixelSize);
+
     function("LoadChars", &LoadChars, allow_raw_pointers());
     function("Cleanup", &Cleanup);
 
@@ -274,7 +300,35 @@ EMSCRIPTEN_BINDINGS(my_module)
         .field("x_ppem", &FT_Bitmap_Size::x_ppem)
         .field("y_ppem", &FT_Bitmap_Size::y_ppem);
 
+    value_object<FT_Size_Metrics>("FT_Size_Metrics")
+        .field("x_ppem", &FT_Size_Metrics::x_ppem)
+        .field("y_ppem", &FT_Size_Metrics::y_ppem)
+        .field("x_scale", &FT_Size_Metrics::x_scale)
+        .field("y_scale", &FT_Size_Metrics::y_scale)
+        .field("ascender", &FT_Size_Metrics::ascender)
+        .field("descender", &FT_Size_Metrics::descender)
+        .field("height", &FT_Size_Metrics::height)
+        .field("max_advance", &FT_Size_Metrics::max_advance);
+
+    value_object<FT_BBox>("FT_BBox")
+        .field("xMin", &FT_BBox::xMin)
+        .field("yMin", &FT_BBox::yMin)
+        .field("xMax", &FT_BBox::xMax)
+        .field("yMax", &FT_BBox::yMax);
+
+    value_object<FT_SizeRec>("FT_SizeRec")
+        .field("metrics", &FT_SizeRec::metrics);
+
     value_object<FT_FaceRec>("FT_FaceRec")
+        .field("ascender", &FT_FaceRec::ascender)
+        .field("descender", &FT_FaceRec::descender)
+        .field("height", &FT_FaceRec::height)
+        .field("bbox", &FT_FaceRec::bbox)
+        .field("max_advance_width", &FT_FaceRec::max_advance_width)
+        .field("max_advance_height", &FT_FaceRec::max_advance_height)
+        .field("underline_position", &FT_FaceRec::underline_position)
+        .field("underline_thickness", &FT_FaceRec::underline_thickness)
+        .field("size", &Size_Getter, &NoOpSetter<FT_FaceRec>)
         .field("family_name", &FamilyName_Getter, &NoOpSetter<FT_FaceRec>)
         .field("style_name", &StyleName_Getter, &NoOpSetter<FT_FaceRec>)
         .field("charmaps", &CharMaps_Getter, &NoOpSetter<FT_FaceRec>)

@@ -1,7 +1,10 @@
 <!DOCTYPE html>
 <html>
-  <canvas id="main"></canvas>
+  <canvas width="640" height="480" id="main"></canvas>
   <script type="module">
+    const canvas = document.querySelector("#main");
+    const ctx = canvas.getContext("2d");
+
     import FreetypeInit from "./ft.js";
     let Freetype = await FreetypeInit();
     async function createFontFromUrl(url) {
@@ -18,17 +21,38 @@
     const font2 = await createFontFromUrl("OSP-DIN.ttf");
 
     Freetype.SetFont("OSP-DIN", "DIN");
-    Freetype.SetSize(32 * 64, 0, 100, 0);
+    const size = Freetype.SetPixelSize(32, 32);
+
+    console.log("New size", size);
 
     console.log(
       "Load char flags: ",
       Freetype.FT_LOAD_RENDER | Freetype.FT_LOAD_TARGET_LIGHT
     );
 
+    let offsetx = 0;
     Freetype.LoadChars(
-      "ab",
+      "The quick brown fox jumps over the lazy dog.",
       Freetype.FT_LOAD_RENDER | Freetype.FT_LOAD_TARGET_LIGHT,
       (glyph) => {
+        const id = ctx.createImageData(1, 1); // only do this once per page
+        const d = id.data; // only do this once per page
+
+        for (let y = 0; y < glyph.bitmap.rows; y++) {
+          for (let x = 0; x < glyph.bitmap.width; x++) {
+            const value = glyph.bitmap.buffer[y * glyph.bitmap.width + x];
+            d[0] = 0;
+            d[1] = 0;
+            d[2] = 0;
+            d[3] = value;
+            ctx.putImageData(
+              id,
+              glyph.bitmap_left + offsetx + x,
+              y - glyph.bitmap_top + size.height / 64
+            );
+          }
+        }
+        offsetx += glyph.advance.x >> 6;
         console.log("glyph", glyph);
       }
     );
