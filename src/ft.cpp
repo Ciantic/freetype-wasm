@@ -153,7 +153,20 @@ bool SetSize(FT_F26Dot6 char_width, FT_F26Dot6 char_height, FT_UInt horz_resolut
     return true;
 }
 
-// TODO: bool SetTransform()
+// TODO: Is transform any good? In docs it says:
+//
+// "Using floating-point computations to perform the transform directly in
+// client code instead will always yield better numbers."
+//
+// Then why even expose this function?
+//
+// void SetTransform() { if (current_face == NULL)
+//     {
+//         fprintf(stderr, "FreeType: Current font is not set.`\n");
+//         return;
+//     }
+//     FT_Set_Transform(current_face, NULL, &pen);
+// }
 
 // https://freetype.org/freetype2/docs/reference/ft2-base_interface.html#ft_load_xxx
 
