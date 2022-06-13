@@ -1,5 +1,7 @@
-export default async function Freetype(): {
-  LoadFontFromBytes: (bytes: number[]) => FT_FaceRec;
+export default function Freetype(): Promise<FreetypeModule>;
+
+interface FreetypeModule {
+  LoadFontFromBytes: (bytes: Uint8Array | number[]) => FT_FaceRec;
 
   UnloadFont: (familyName: string) => void;
 
@@ -68,7 +70,7 @@ export default async function Freetype(): {
   FT_ENCODING_ADOBE_EXPERT: number;
   FT_ENCODING_ADOBE_CUSTOM: number;
   FT_ENCODING_APPLE_ROMAN: number;
-};
+}
 
 interface FT_Glyph_Metrics {
   width: number;
@@ -84,10 +86,10 @@ interface FT_Glyph_Metrics {
 interface FT_GlyphSlotRec {
   linearHoriAdvance: number;
   linearVertAdvance: number;
-  advance: number;
+  advance: FT_Vector;
   metrics: number;
   format: number;
-  bitmap: number;
+  bitmap: FT_Bitmap;
   bitmap_left: number;
   bitmap_top: number;
 }

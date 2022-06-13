@@ -1,6 +1,7 @@
+// @ts-check
 import FreetypeInit from "./ft.js";
 
-const canvas = document.querySelector("#main");
+const canvas = document.querySelector("canvas");
 const ctx = canvas.getContext("2d");
 const Freetype = await FreetypeInit();
 
