@@ -126,10 +126,14 @@ void UnloadFont(std::string familyName)
     face_ptrs.erase(familyName);
 }
 
-bool SetFont(std::string faceName, std::string styleName)
+FT_FaceRec SetFont(std::string faceName, std::string styleName)
 {
     current_face = face_map[faceName][styleName];
-    return current_face != 0;
+    if (current_face == NULL)
+    {
+        // TODO: Return null
+    }
+    return *current_face;
 }
 
 FT_Size_Metrics SetCharSize(FT_F26Dot6 char_width, FT_F26Dot6 char_height, FT_UInt horz_resolution, FT_UInt vert_resolution)
@@ -138,6 +142,7 @@ FT_Size_Metrics SetCharSize(FT_F26Dot6 char_width, FT_F26Dot6 char_height, FT_UI
     if (current_face == NULL)
     {
         fprintf(stderr, "FreeType: Unable to set size, font is not set. Use `SetFont` first.");
+        // TODO: Return null
         return current_face->size->metrics;
     }
 
@@ -145,6 +150,7 @@ FT_Size_Metrics SetCharSize(FT_F26Dot6 char_width, FT_F26Dot6 char_height, FT_UI
     if (error)
     {
         fprintf(stderr, "FreeType: Error setting size.\n");
+        // TODO: Return null
         return current_face->size->metrics;
     }
 
@@ -159,6 +165,7 @@ FT_Size_Metrics SetPixelSize(
     if (current_face == NULL)
     {
         fprintf(stderr, "FreeType: Unable to set size, font is not set. Use `SetFont` first.");
+        // TODO: Return null
         return current_face->size->metrics;
     }
 
@@ -166,6 +173,7 @@ FT_Size_Metrics SetPixelSize(
     if (error)
     {
         fprintf(stderr, "FreeType: Error setting size.\n");
+        // TODO: Return null
         return current_face->size->metrics;
     }
 

@@ -28,3 +28,4 @@ emmake make install
 ## TODO
 
 - Bundle ft.wasm and ft.js with the example
+- [Variable font interface](https://freetype.org/freetype2/docs/reference/ft2-multiple_masters.html) not implemented yet

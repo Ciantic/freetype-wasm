@@ -1,12 +1,18 @@
 <!DOCTYPE html>
 <html>
-  <canvas width="640" height="480" id="main"></canvas>
+  <canvas
+    width="640"
+    height="480"
+    id="main"
+    style="image-rendering: pixelated"
+  ></canvas>
   <script type="module">
+    import FreetypeInit from "./ft.js";
+
     const canvas = document.querySelector("#main");
     const ctx = canvas.getContext("2d");
+    const Freetype = await FreetypeInit();
 
-    import FreetypeInit from "./ft.js";
-    let Freetype = await FreetypeInit();
     async function createFontFromUrl(url) {
       const font = await fetch(url);
       const buffer = await font.arrayBuffer();
@@ -14,29 +20,25 @@
       return face;
     }
 
-    const font = await createFontFromUrl("OSP-DIN.ttf");
-    console.log("Loaded font", font);
-
-    console.log("Next is already loaded error:");
-    const font2 = await createFontFromUrl("OSP-DIN.ttf");
-
-    Freetype.SetFont("OSP-DIN", "DIN");
-    const size = Freetype.SetPixelSize(32, 32);
-
-    console.log("New size", size);
-
-    console.log(
-      "Load char flags: ",
-      Freetype.FT_LOAD_RENDER | Freetype.FT_LOAD_TARGET_LIGHT
-    );
+    await createFontFromUrl("OSP-DIN.ttf");
+    const font = Freetype.SetFont("OSP-DIN", "DIN");
+    const size = Freetype.SetPixelSize(0, 32);
+    console.log("Set font", font);
+    console.log("Set size", size);
 
     let offsetx = 0;
     Freetype.LoadChars(
       "The quick brown fox jumps over the lazy dog.",
-      Freetype.FT_LOAD_RENDER | Freetype.FT_LOAD_TARGET_LIGHT,
+      // Freetype.FT_LOAD_RENDER
+      // Freetype.FT_LOAD_RENDER | Freetype.FT_LOAD_TARGET_LIGHT
+      // Freetype.FT_LOAD_RENDER | Freetype.FT_LOAD_TARGET_LCD
+      // Freetype.FT_LOAD_RENDER | Freetype.FT_LOAD_TARGET_LCD_V
+      Freetype.FT_LOAD_RENDER,
       (glyph) => {
-        const id = ctx.createImageData(1, 1); // only do this once per page
-        const d = id.data; // only do this once per page
+        const id = ctx.createImageData(1, 1);
+        const d = id.data;
+        const line_height = size.height >> 6;
+        if (offsetx == 0) console.log("glyph", glyph);
 
         for (let y = 0; y < glyph.bitmap.rows; y++) {
           for (let x = 0; x < glyph.bitmap.width; x++) {
@@ -48,21 +50,14 @@
             ctx.putImageData(
               id,
               glyph.bitmap_left + offsetx + x,
-              y - glyph.bitmap_top + size.height / 64
+              y - glyph.bitmap_top + line_height
             );
           }
         }
         offsetx += glyph.advance.x >> 6;
-        console.log("glyph", glyph);
       }
     );
     Freetype.UnloadFont("OSP-DIN");
-
-    console.log("Set should fail");
-    Freetype.SetFont("OSP-DIN", "DIN");
-
-    // console.log("Face: ", foo.LoadFace([5, 10]));
-
-    // foo.Write("OSP-DIN", "DIN", "test");
+    Freetype.Cleanup();
   </script>
 </html>
