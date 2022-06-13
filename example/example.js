@@ -64,6 +64,7 @@ Freetype.LoadChars(
 );
 console.log("Done loading chars");
 console.log("Charmap by unicode char", charmap);
+console.log("Has kerning", !!(font.face_flags & Freetype.FT_FACE_FLAG_KERNING));
 const kern = Freetype.GetKerning(
   charmap["V"].glyph_index,
   charmap["A"].glyph_index,
