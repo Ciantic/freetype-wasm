@@ -6,3 +6,4 @@ example/*
 !example/index.html
 !example/test.html
 !example/ft.d.ts
+!example/example.js
