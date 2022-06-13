@@ -22,19 +22,29 @@ console.log("Set font", font);
 console.log("Set size", size);
 
 let offsetx = 0;
+/**
+ * @type {{[k: string] : import("./ft.js").FT_GlyphSlotRec}}
+ */
+let charmap = {};
+Freetype.SetCharmap(Freetype.FT_ENCODING_UNICODE);
 Freetype.LoadChars(
-  "The quick brown fox jumps over the lazy dog.",
-  // Freetype.FT_LOAD_RENDER
-  // Freetype.FT_LOAD_RENDER | Freetype.FT_LOAD_TARGET_LIGHT
-  // Freetype.FT_LOAD_RENDER | Freetype.FT_LOAD_TARGET_LCD
-  // Freetype.FT_LOAD_RENDER | Freetype.FT_LOAD_TARGET_LCD_V
+  // Freetype.FT_LOAD_RENDER | Freetype.FT_LOAD_TARGET_LIGHT,
+  // Freetype.FT_LOAD_RENDER | Freetype.FT_LOAD_TARGET_LCD,
+  // Freetype.FT_LOAD_RENDER | Freetype.FT_LOAD_TARGET_LCD_V,
   Freetype.FT_LOAD_RENDER,
-  (glyph) => {
+  (glyph, charcode) => {
     const id = ctx.createImageData(1, 1);
     const d = id.data;
     const line_height = size.height >> 6;
-    if (offsetx == 0) console.log("First glyph", glyph);
+    charmap[String.fromCharCode(charcode)] = glyph;
 
+    // Stop iterating on 90th charcode
+    if (charcode > 90) {
+      return false;
+    }
+
+    // For actual usage, you might want to store the image data slices, since
+    // following is slow way to draw canvas.
     for (let y = 0; y < glyph.bitmap.rows; y++) {
       for (let x = 0; x < glyph.bitmap.width; x++) {
         const value = glyph.bitmap.buffer[y * glyph.bitmap.width + x];
@@ -52,5 +62,8 @@ Freetype.LoadChars(
     offsetx += glyph.advance.x >> 6;
   }
 );
+console.log("Done loading chars");
+console.log("Charmap by unicode char", charmap);
 Freetype.UnloadFont("OSP-DIN");
 Freetype.Cleanup();
+console.log("Cleanup done");

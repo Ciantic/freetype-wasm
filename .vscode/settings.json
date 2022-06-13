@@ -92,6 +92,9 @@
     "xutility": "cpp",
     "__availability": "cpp",
     "regex": "cpp",
-    "span": "cpp"
+    "span": "cpp",
+    "queue": "cpp",
+    "stack": "cpp",
+    "__assert": "cpp"
   }
 }

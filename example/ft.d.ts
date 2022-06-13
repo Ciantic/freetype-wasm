@@ -17,10 +17,15 @@ interface FreetypeModule {
   SetPixelSize: (pixel_width: number, pixel_height: number) => FT_Size_Metrics;
 
   LoadChars: (
-    chars: string,
     load_flags: number,
-    cb: (glyph: FT_GlyphSlotRec) => void
-  ) => void;
+    cb: (glyph: FT_GlyphSlotRec, charcode: number, glyph_index: number) => void
+  ) => false | undefined;
+
+  LoadCharsFrom: (
+    first_charcode: number,
+    load_flags: number,
+    cb: (glyph: FT_GlyphSlotRec, charcode: number, glyph_index: number) => void
+  ) => false | undefined;
 
   SetCharmap: (encoding: number) => boolean;
   SetCharmapByIndex: (index: number) => boolean;
@@ -75,7 +80,7 @@ interface FreetypeModule {
   FT_ENCODING_APPLE_ROMAN: number;
 }
 
-interface FT_Glyph_Metrics {
+export interface FT_Glyph_Metrics {
   width: number;
   height: number;
   horiBearingX: number;
@@ -86,7 +91,7 @@ interface FT_Glyph_Metrics {
   vertAdvance: number;
 }
 
-interface FT_GlyphSlotRec {
+export interface FT_GlyphSlotRec {
   linearHoriAdvance: number;
   linearVertAdvance: number;
   advance: FT_Vector;
@@ -97,12 +102,12 @@ interface FT_GlyphSlotRec {
   bitmap_top: number;
 }
 
-interface FT_Vector {
+export interface FT_Vector {
   x: number;
   y: number;
 }
 
-interface FT_Bitmap {
+export interface FT_Bitmap {
   rows: number;
   width: number;
   pitch: number;
@@ -111,13 +116,13 @@ interface FT_Bitmap {
   pixel_mode: number;
 }
 
-interface FT_CharMapRec {
+export interface FT_CharMapRec {
   encoding: number;
   platform_id: number;
   encoding_id: number;
 }
 
-interface FT_Bitmap_Size {
+export interface FT_Bitmap_Size {
   width: number;
   height: number;
   size: number;
@@ -125,7 +130,7 @@ interface FT_Bitmap_Size {
   y_ppem: number;
 }
 
-interface FT_Size_Metrics {
+export interface FT_Size_Metrics {
   x_ppem: number;
   y_ppem: number;
   x_scale: number;
@@ -136,18 +141,18 @@ interface FT_Size_Metrics {
   max_advance: number;
 }
 
-interface FT_BBox {
+export interface FT_BBox {
   xMin: number;
   yMin: number;
   xMax: number;
   yMax: number;
 }
 
-interface FT_SizeRec {
+export interface FT_SizeRec {
   metrics: FT_SizeRec;
 }
 
-interface FT_FaceRec {
+export interface FT_FaceRec {
   ascender: number;
   descender: number;
   height: number;

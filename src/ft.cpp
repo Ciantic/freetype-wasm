@@ -216,7 +216,6 @@ bool SetCharmapByIndex(int index)
                 fprintf(stderr, "FreeType: Error setting charmap.\n");
                 return false;
             }
-            fprintf(stderr, "Set charmap %d?\n", index);
             return true;
         }
     }
@@ -224,13 +223,6 @@ bool SetCharmapByIndex(int index)
     fprintf(stderr, "Charmap not found with index '%d'.\n", index);
     return false;
 }
-// TODO: SetCharmap
-// TODO: SetCharmapByIndex
-// FT_Select_Charmap (FT_ENCODING_* flag)
-// FT_Set_Charmap (iterate and choose by index)
-// FT_Get_Char_Index
-// FT_Get_First_Char https://freetype.org/freetype2/docs/reference/ft2-base_interface.html#ft_get_first_char (contains example to iterate)
-// FT_Get_Next_Char
 
 // TODO: Is transform any good? In docs it says:
 //
@@ -249,7 +241,7 @@ bool SetCharmapByIndex(int index)
 
 // https://freetype.org/freetype2/docs/reference/ft2-base_interface.html#ft_load_xxx
 
-void LoadChars(std::string chars, FT_Int32 load_flags, emscripten::val cb)
+void LoadCharsFrom(FT_ULong first_charcode, FT_Int32 load_flags, emscripten::val cb)
 {
     if (current_face == NULL)
     {
@@ -257,17 +249,58 @@ void LoadChars(std::string chars, FT_Int32 load_flags, emscripten::val cb)
         return;
     }
 
-    for (auto &c : chars)
+    FT_UInt gindex;
+    FT_ULong charcode = FT_Get_Next_Char(current_face, first_charcode, &gindex);
+
+    while (gindex != 0)
     {
-        FT_Error error = FT_Load_Char(current_face, c, load_flags);
+        FT_Error error = FT_Load_Char(current_face, charcode, load_flags);
         if (error)
         {
-            fprintf(stderr, "Can't load char '%c'\n", c);
+            fprintf(stderr, "Can't load char '%lu'\n", charcode);
             continue;
         }
-        cb(*current_face->glyph);
+        auto value = cb(*current_face->glyph, charcode, gindex);
+        if (value.isFalse())
+        {
+            break;
+        }
+
+        charcode = FT_Get_Next_Char(current_face, charcode, &gindex);
     }
 }
+
+void LoadChars(FT_Int32 load_flags, emscripten::val cb)
+{
+    if (current_face == NULL)
+    {
+        fprintf(stderr, "FreeType: Current font is not set, use first `LoadFontFromBytes` and then `LoadChar`\n");
+        return;
+    }
+
+    FT_UInt gindex;
+    FT_ULong charcode = FT_Get_First_Char(current_face, &gindex);
+    while (gindex != 0)
+    {
+        FT_Error error = FT_Load_Char(current_face, charcode, load_flags);
+        if (error)
+        {
+            fprintf(stderr, "Can't load char '%lu'\n", charcode);
+            continue;
+        }
+        auto value = cb(*current_face->glyph, charcode, gindex);
+        if (value.isFalse())
+        {
+            break;
+        }
+
+        charcode = FT_Get_Next_Char(current_face, charcode, &gindex);
+    }
+}
+
+// FT_Get_Char_Index
+// FT_Get_First_Char https://freetype.org/freetype2/docs/reference/ft2-base_interface.html#ft_get_first_char (contains example to iterate)
+// FT_Get_Next_Char
 
 emscripten::val GlyphFormat_Getter(const FT_GlyphSlotRec &v)
 {
@@ -343,6 +376,7 @@ EMSCRIPTEN_BINDINGS(my_module)
     function("SetCharmap", &SetCharmap);
     function("SetCharmapByIndex", &SetCharmapByIndex);
     function("LoadChars", &LoadChars);
+    function("LoadCharsFrom", &LoadCharsFrom);
     function("Cleanup", &Cleanup);
 
     value_object<FT_Glyph_Metrics>("FT_Glyph_Metrics")
