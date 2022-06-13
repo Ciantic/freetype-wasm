@@ -29,3 +29,4 @@ emmake make install
 
 - Bundle ft.wasm and ft.js with the example
 - [Variable font interface](https://freetype.org/freetype2/docs/reference/ft2-multiple_masters.html) not implemented yet
+- Compile Freetype with Brotli for woff2, Harfbuzz for ligatures
