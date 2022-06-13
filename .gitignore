@@ -5,3 +5,4 @@ src/build
 example/*
 !example/index.html
 !example/test.html
+!example/ft.d.ts

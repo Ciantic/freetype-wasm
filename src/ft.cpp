@@ -271,13 +271,13 @@ void NoOpSetter(T &v, emscripten::val setv) {}
 using namespace emscripten;
 EMSCRIPTEN_BINDINGS(my_module)
 {
-    function("LoadFontFromBytes", &LoadFontFromBytes, allow_raw_pointers());
+    function("LoadFontFromBytes", &LoadFontFromBytes);
     function("UnloadFont", &UnloadFont);
     function("SetFont", &SetFont);
     function("SetCharSize", &SetCharSize);
     function("SetPixelSize", &SetPixelSize);
 
-    function("LoadChars", &LoadChars, allow_raw_pointers());
+    function("LoadChars", &LoadChars);
     function("Cleanup", &Cleanup);
 
     value_object<FT_Glyph_Metrics>("FT_Glyph_Metrics")
