@@ -27,6 +27,12 @@ interface FreetypeModule {
     cb: (glyph: FT_GlyphSlotRec, charcode: number, glyph_index: number) => void
   ) => false | undefined;
 
+  GetKerning: (
+    left_glyph_index: number,
+    right_glyph_index: number,
+    kern_mode: number
+  ) => FT_Vector;
+
   SetCharmap: (encoding: number) => boolean;
   SetCharmapByIndex: (index: number) => boolean;
 
@@ -78,6 +84,29 @@ interface FreetypeModule {
   FT_ENCODING_ADOBE_EXPERT: number;
   FT_ENCODING_ADOBE_CUSTOM: number;
   FT_ENCODING_APPLE_ROMAN: number;
+
+  FT_FACE_FLAG_SCALABLE: number;
+  FT_FACE_FLAG_FIXED_SIZES: number;
+  FT_FACE_FLAG_FIXED_WIDTH: number;
+  FT_FACE_FLAG_SFNT: number;
+  FT_FACE_FLAG_HORIZONTAL: number;
+  FT_FACE_FLAG_VERTICAL: number;
+  FT_FACE_FLAG_KERNING: number;
+  FT_FACE_FLAG_FAST_GLYPHS: number;
+  FT_FACE_FLAG_MULTIPLE_MASTERS: number;
+  FT_FACE_FLAG_GLYPH_NAMES: number;
+  FT_FACE_FLAG_EXTERNAL_STREAM: number;
+  FT_FACE_FLAG_HINTER: number;
+  FT_FACE_FLAG_CID_KEYED: number;
+  FT_FACE_FLAG_TRICKY: number;
+  FT_FACE_FLAG_COLOR: number;
+  FT_FACE_FLAG_VARIATION: number;
+  FT_FACE_FLAG_SVG: number;
+  FT_FACE_FLAG_SBIX: number;
+  FT_FACE_FLAG_SBIX_OVERLAY: number;
+
+  FT_STYLE_FLAG_ITALIC: number;
+  FT_STYLE_FLAG_BOLD: number;
 }
 
 export interface FT_Glyph_Metrics {
@@ -94,6 +123,7 @@ export interface FT_Glyph_Metrics {
 export interface FT_GlyphSlotRec {
   linearHoriAdvance: number;
   linearVertAdvance: number;
+  glyph_index: number;
   advance: FT_Vector;
   metrics: number;
   format: number;
@@ -153,6 +183,8 @@ export interface FT_SizeRec {
 }
 
 export interface FT_FaceRec {
+  face_flags: number;
+  style_flags: number;
   ascender: number;
   descender: number;
   height: number;

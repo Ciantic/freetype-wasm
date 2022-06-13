@@ -64,6 +64,22 @@ Freetype.LoadChars(
 );
 console.log("Done loading chars");
 console.log("Charmap by unicode char", charmap);
+const kern = Freetype.GetKerning(
+  charmap["V"].glyph_index,
+  charmap["A"].glyph_index,
+  0
+);
+const kern2 = Freetype.GetKerning(
+  charmap["T"].glyph_index,
+  charmap["."].glyph_index,
+  0
+);
+const kern3 = Freetype.GetKerning(
+  charmap["I"].glyph_index,
+  charmap["I"].glyph_index,
+  0
+);
+console.log("kern", kern, kern2, kern3);
 Freetype.UnloadFont("OSP-DIN");
 Freetype.Cleanup();
 console.log("Cleanup done");

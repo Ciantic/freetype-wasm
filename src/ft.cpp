@@ -298,6 +298,24 @@ void LoadChars(FT_Int32 load_flags, emscripten::val cb)
     }
 }
 
+FT_Vector GetKerning(FT_UInt left_glyph_index, FT_UInt right_glyph_index, FT_UInt kern_mode)
+{
+    FT_Vector vector;
+    if (current_face == NULL)
+    {
+        fprintf(stderr, "FreeType: Current font is not set.\n");
+        return vector;
+    }
+
+    FT_Error error = FT_Get_Kerning(current_face, left_glyph_index, right_glyph_index, kern_mode, &vector);
+    if (error)
+    {
+        fprintf(stderr, "Unable to read kerning.\n");
+        return vector;
+    }
+    return vector;
+}
+
 // FT_Get_Char_Index
 // FT_Get_First_Char https://freetype.org/freetype2/docs/reference/ft2-base_interface.html#ft_get_first_char (contains example to iterate)
 // FT_Get_Next_Char
@@ -377,6 +395,7 @@ EMSCRIPTEN_BINDINGS(my_module)
     function("SetCharmapByIndex", &SetCharmapByIndex);
     function("LoadChars", &LoadChars);
     function("LoadCharsFrom", &LoadCharsFrom);
+    function("GetKerning", &GetKerning);
     function("Cleanup", &Cleanup);
 
     value_object<FT_Glyph_Metrics>("FT_Glyph_Metrics")
@@ -394,6 +413,7 @@ EMSCRIPTEN_BINDINGS(my_module)
         .field("linearVertAdvance", &FT_GlyphSlotRec::linearVertAdvance)
         .field("advance", &FT_GlyphSlotRec::advance)
         .field("metrics", &FT_GlyphSlotRec::metrics)
+        .field("glyph_index", &FT_GlyphSlotRec::glyph_index)
         .field("format", &GlyphFormat_Getter, &NoOpSetter<FT_GlyphSlotRec>)
         .field("bitmap", &FT_GlyphSlotRec::bitmap)
         .field("bitmap_left", &FT_GlyphSlotRec::bitmap_left)
@@ -446,6 +466,8 @@ EMSCRIPTEN_BINDINGS(my_module)
         .field("ascender", &FT_FaceRec::ascender)
         .field("descender", &FT_FaceRec::descender)
         .field("height", &FT_FaceRec::height)
+        .field("face_flags", &FT_FaceRec::face_flags)
+        .field("style_flags", &FT_FaceRec::style_flags)
         .field("bbox", &FT_FaceRec::bbox)
         .field("max_advance_width", &FT_FaceRec::max_advance_width)
         .field("max_advance_height", &FT_FaceRec::max_advance_height)
@@ -503,6 +525,29 @@ EMSCRIPTEN_BINDINGS(my_module)
     constant("FT_ENCODING_ADOBE_EXPERT", (unsigned int)FT_Encoding::FT_ENCODING_ADOBE_EXPERT);
     constant("FT_ENCODING_ADOBE_CUSTOM", (unsigned int)FT_Encoding::FT_ENCODING_ADOBE_CUSTOM);
     constant("FT_ENCODING_APPLE_ROMAN", (unsigned int)FT_Encoding::FT_ENCODING_APPLE_ROMAN);
+
+    constant("FT_FACE_FLAG_SCALABLE", FT_FACE_FLAG_SCALABLE);
+    constant("FT_FACE_FLAG_FIXED_SIZES", FT_FACE_FLAG_FIXED_SIZES);
+    constant("FT_FACE_FLAG_FIXED_WIDTH", FT_FACE_FLAG_FIXED_WIDTH);
+    constant("FT_FACE_FLAG_SFNT", FT_FACE_FLAG_SFNT);
+    constant("FT_FACE_FLAG_HORIZONTAL", FT_FACE_FLAG_HORIZONTAL);
+    constant("FT_FACE_FLAG_VERTICAL", FT_FACE_FLAG_VERTICAL);
+    constant("FT_FACE_FLAG_KERNING", FT_FACE_FLAG_KERNING);
+    constant("FT_FACE_FLAG_FAST_GLYPHS", FT_FACE_FLAG_FAST_GLYPHS);
+    constant("FT_FACE_FLAG_MULTIPLE_MASTERS", FT_FACE_FLAG_MULTIPLE_MASTERS);
+    constant("FT_FACE_FLAG_GLYPH_NAMES", FT_FACE_FLAG_GLYPH_NAMES);
+    constant("FT_FACE_FLAG_EXTERNAL_STREAM", FT_FACE_FLAG_EXTERNAL_STREAM);
+    constant("FT_FACE_FLAG_HINTER", FT_FACE_FLAG_HINTER);
+    constant("FT_FACE_FLAG_CID_KEYED", FT_FACE_FLAG_CID_KEYED);
+    constant("FT_FACE_FLAG_TRICKY", FT_FACE_FLAG_TRICKY);
+    constant("FT_FACE_FLAG_COLOR", FT_FACE_FLAG_COLOR);
+    constant("FT_FACE_FLAG_VARIATION", FT_FACE_FLAG_VARIATION);
+    constant("FT_FACE_FLAG_SVG", FT_FACE_FLAG_SVG);
+    constant("FT_FACE_FLAG_SBIX", FT_FACE_FLAG_SBIX);
+    constant("FT_FACE_FLAG_SBIX_OVERLAY", FT_FACE_FLAG_SBIX_OVERLAY);
+
+    constant("FT_STYLE_FLAG_ITALIC", FT_STYLE_FLAG_ITALIC);
+    constant("FT_STYLE_FLAG_BOLD", FT_STYLE_FLAG_BOLD);
 }
 
 namespace emscripten
