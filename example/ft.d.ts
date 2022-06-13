@@ -1,11 +1,11 @@
 export default function Freetype(): Promise<FreetypeModule>;
 
 interface FreetypeModule {
-  LoadFontFromBytes: (bytes: Uint8Array | number[]) => FT_FaceRec;
+  LoadFontFromBytes: (bytes: Uint8Array | number[]) => FT_FaceRec[];
 
   UnloadFont: (familyName: string) => void;
 
-  SetFont: (familyName: string, styleName: string) => void;
+  SetFont: (familyName: string, styleName: string) => FT_FaceRec;
 
   SetCharSize: (
     char_width: number,
@@ -21,6 +21,9 @@ interface FreetypeModule {
     load_flags: number,
     cb: (glyph: FT_GlyphSlotRec) => void
   ) => void;
+
+  SetCharmap: (encoding: number) => boolean;
+  SetCharmapByIndex: (index: number) => boolean;
 
   Cleanup: () => void;
 

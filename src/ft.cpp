@@ -180,6 +180,58 @@ FT_Size_Metrics SetPixelSize(
     return current_face->size->metrics;
 }
 
+bool SetCharmap(unsigned int encoding)
+{
+    if (current_face == NULL)
+    {
+        fprintf(stderr, "FreeType: Current font is not set. Unable to set charmap.");
+        return false;
+    }
+
+    FT_Error error = FT_Select_Charmap(current_face, (FT_Encoding)encoding);
+    if (error)
+    {
+        fprintf(stderr, "FreeType: Error selecting charmap.\n");
+        return false;
+    }
+
+    return true;
+}
+
+bool SetCharmapByIndex(int index)
+{
+    if (current_face == NULL)
+    {
+        fprintf(stderr, "FreeType: Current font is not set. Unable to set charmap.\n");
+        return false;
+    }
+
+    for (int k = 0; k < current_face->num_charmaps; k++)
+    {
+        if (k == index)
+        {
+            FT_Error error = FT_Set_Charmap(current_face, current_face->charmaps[k]);
+            if (error)
+            {
+                fprintf(stderr, "FreeType: Error setting charmap.\n");
+                return false;
+            }
+            fprintf(stderr, "Set charmap %d?\n", index);
+            return true;
+        }
+    }
+
+    fprintf(stderr, "Charmap not found with index '%d'.\n", index);
+    return false;
+}
+// TODO: SetCharmap
+// TODO: SetCharmapByIndex
+// FT_Select_Charmap (FT_ENCODING_* flag)
+// FT_Set_Charmap (iterate and choose by index)
+// FT_Get_Char_Index
+// FT_Get_First_Char https://freetype.org/freetype2/docs/reference/ft2-base_interface.html#ft_get_first_char (contains example to iterate)
+// FT_Get_Next_Char
+
 // TODO: Is transform any good? In docs it says:
 //
 // "Using floating-point computations to perform the transform directly in
@@ -208,6 +260,11 @@ void LoadChars(std::string chars, FT_Int32 load_flags, emscripten::val cb)
     for (auto &c : chars)
     {
         FT_Error error = FT_Load_Char(current_face, c, load_flags);
+        if (error)
+        {
+            fprintf(stderr, "Can't load char '%c'\n", c);
+            continue;
+        }
         cb(*current_face->glyph);
     }
 }
@@ -283,7 +340,8 @@ EMSCRIPTEN_BINDINGS(my_module)
     function("SetFont", &SetFont);
     function("SetCharSize", &SetCharSize);
     function("SetPixelSize", &SetPixelSize);
-
+    function("SetCharmap", &SetCharmap);
+    function("SetCharmapByIndex", &SetCharmapByIndex);
     function("LoadChars", &LoadChars);
     function("Cleanup", &Cleanup);
 
@@ -365,11 +423,11 @@ EMSCRIPTEN_BINDINGS(my_module)
         .field("charmaps", &CharMaps_Getter, &NoOpSetter<FT_FaceRec>)
         .field("available_sizes", &AvailableSizes_Getter, &NoOpSetter<FT_FaceRec>);
 
-    constant("FT_GLYPH_FORMAT_NONE", FT_GLYPH_FORMAT_NONE);
-    constant("FT_GLYPH_FORMAT_COMPOSITE", FT_GLYPH_FORMAT_COMPOSITE);
-    constant("FT_GLYPH_FORMAT_BITMAP", FT_GLYPH_FORMAT_BITMAP);
-    constant("FT_GLYPH_FORMAT_OUTLINE", FT_GLYPH_FORMAT_OUTLINE);
-    constant("FT_GLYPH_FORMAT_PLOTTER", FT_GLYPH_FORMAT_PLOTTER);
+    constant("FT_GLYPH_FORMAT_NONE", (unsigned int)FT_Glyph_Format::FT_GLYPH_FORMAT_NONE);
+    constant("FT_GLYPH_FORMAT_COMPOSITE", (unsigned int)FT_Glyph_Format::FT_GLYPH_FORMAT_COMPOSITE);
+    constant("FT_GLYPH_FORMAT_BITMAP", (unsigned int)FT_Glyph_Format::FT_GLYPH_FORMAT_BITMAP);
+    constant("FT_GLYPH_FORMAT_OUTLINE", (unsigned int)FT_Glyph_Format::FT_GLYPH_FORMAT_OUTLINE);
+    constant("FT_GLYPH_FORMAT_PLOTTER", (unsigned int)FT_Glyph_Format::FT_GLYPH_FORMAT_PLOTTER);
 
     // load targets
     constant("FT_LOAD_TARGET_NORMAL", FT_LOAD_TARGET_NORMAL);
@@ -397,20 +455,20 @@ EMSCRIPTEN_BINDINGS(my_module)
     constant("FT_LOAD_NO_AUTOHINT", FT_LOAD_NO_AUTOHINT);
 
     // encoding
-    constant("FT_ENCODING_NONE", FT_ENCODING_NONE);
-    constant("FT_ENCODING_UNICODE", FT_ENCODING_UNICODE);
-    constant("FT_ENCODING_MS_SYMBOL", FT_ENCODING_MS_SYMBOL);
-    constant("FT_ENCODING_ADOBE_LATIN_1", FT_ENCODING_ADOBE_LATIN_1);
-    constant("FT_ENCODING_OLD_LATIN_2", FT_ENCODING_OLD_LATIN_2);
-    constant("FT_ENCODING_SJIS", FT_ENCODING_SJIS);
-    constant("FT_ENCODING_PRC", FT_ENCODING_PRC);
-    constant("FT_ENCODING_BIG5", FT_ENCODING_BIG5);
-    constant("FT_ENCODING_WANSUNG", FT_ENCODING_WANSUNG);
-    constant("FT_ENCODING_JOHAB", FT_ENCODING_JOHAB);
-    constant("FT_ENCODING_ADOBE_STANDARD", FT_ENCODING_ADOBE_STANDARD);
-    constant("FT_ENCODING_ADOBE_EXPERT", FT_ENCODING_ADOBE_EXPERT);
-    constant("FT_ENCODING_ADOBE_CUSTOM", FT_ENCODING_ADOBE_CUSTOM);
-    constant("FT_ENCODING_APPLE_ROMAN", FT_ENCODING_APPLE_ROMAN);
+    constant("FT_ENCODING_NONE", (unsigned int)FT_Encoding::FT_ENCODING_NONE);
+    constant("FT_ENCODING_UNICODE", (unsigned int)FT_Encoding::FT_ENCODING_UNICODE);
+    constant("FT_ENCODING_MS_SYMBOL", (unsigned int)FT_Encoding::FT_ENCODING_MS_SYMBOL);
+    constant("FT_ENCODING_ADOBE_LATIN_1", (unsigned int)FT_Encoding::FT_ENCODING_ADOBE_LATIN_1);
+    constant("FT_ENCODING_OLD_LATIN_2", (unsigned int)FT_Encoding::FT_ENCODING_OLD_LATIN_2);
+    constant("FT_ENCODING_SJIS", (unsigned int)FT_Encoding::FT_ENCODING_SJIS);
+    constant("FT_ENCODING_PRC", (unsigned int)FT_Encoding::FT_ENCODING_PRC);
+    constant("FT_ENCODING_BIG5", (unsigned int)FT_Encoding::FT_ENCODING_BIG5);
+    constant("FT_ENCODING_WANSUNG", (unsigned int)FT_Encoding::FT_ENCODING_WANSUNG);
+    constant("FT_ENCODING_JOHAB", (unsigned int)FT_Encoding::FT_ENCODING_JOHAB);
+    constant("FT_ENCODING_ADOBE_STANDARD", (unsigned int)FT_Encoding::FT_ENCODING_ADOBE_STANDARD);
+    constant("FT_ENCODING_ADOBE_EXPERT", (unsigned int)FT_Encoding::FT_ENCODING_ADOBE_EXPERT);
+    constant("FT_ENCODING_ADOBE_CUSTOM", (unsigned int)FT_Encoding::FT_ENCODING_ADOBE_CUSTOM);
+    constant("FT_ENCODING_APPLE_ROMAN", (unsigned int)FT_Encoding::FT_ENCODING_APPLE_ROMAN);
 }
 
 namespace emscripten
