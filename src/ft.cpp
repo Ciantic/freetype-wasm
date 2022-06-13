@@ -224,7 +224,14 @@ emscripten::val Size_Getter(const FT_FaceRec &v)
 
 emscripten::val Encoding_Getter(const FT_CharMapRec &v)
 {
-    return emscripten::val((unsigned long)v.encoding);
+    // Encoding is four letters stored in a 32 bit integer
+    char enc[5] = {
+        (char)((v.encoding >> (8 * 3)) & 0xff),
+        (char)((v.encoding >> (8 * 2)) & 0xff),
+        (char)((v.encoding >> (8 * 1)) & 0xff),
+        (char)((v.encoding >> (8 * 0)) & 0xff),
+        0};
+    return emscripten::val(std::string(enc));
 }
 
 emscripten::val StyleName_Getter(const FT_FaceRec &v)

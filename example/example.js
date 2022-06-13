@@ -5,6 +5,9 @@ const canvas = document.querySelector("canvas");
 const ctx = canvas.getContext("2d");
 const Freetype = await FreetypeInit();
 
+canvas.width = window.innerWidth * window.devicePixelRatio;
+canvas.style.width = Math.floor(canvas.width / window.devicePixelRatio) + "px";
+
 async function createFontFromUrl(url) {
   const font = await fetch(url);
   const buffer = await font.arrayBuffer();
@@ -14,7 +17,7 @@ async function createFontFromUrl(url) {
 
 await createFontFromUrl("OSP-DIN.ttf");
 const font = Freetype.SetFont("OSP-DIN", "DIN");
-const size = Freetype.SetPixelSize(0, 32);
+const size = Freetype.SetPixelSize(0, 64);
 console.log("Set font", font);
 console.log("Set size", size);
 
@@ -30,7 +33,7 @@ Freetype.LoadChars(
     const id = ctx.createImageData(1, 1);
     const d = id.data;
     const line_height = size.height >> 6;
-    if (offsetx == 0) console.log("glyph", glyph);
+    if (offsetx == 0) console.log("First glyph", glyph);
 
     for (let y = 0; y < glyph.bitmap.rows; y++) {
       for (let x = 0; x < glyph.bitmap.width; x++) {
