@@ -212,6 +212,11 @@ void LoadChars(std::string chars, FT_Int32 load_flags, emscripten::val cb)
     }
 }
 
+emscripten::val GlyphFormat_Getter(const FT_GlyphSlotRec &v)
+{
+    return emscripten::val((unsigned int)v.format);
+}
+
 emscripten::val Size_Getter(const FT_FaceRec &v)
 {
     return emscripten::val(*v.size);
@@ -275,11 +280,22 @@ EMSCRIPTEN_BINDINGS(my_module)
     function("LoadChars", &LoadChars, allow_raw_pointers());
     function("Cleanup", &Cleanup);
 
+    value_object<FT_Glyph_Metrics>("FT_Glyph_Metrics")
+        .field("width", &FT_Glyph_Metrics::width)
+        .field("height", &FT_Glyph_Metrics::height)
+        .field("horiBearingX", &FT_Glyph_Metrics::horiBearingX)
+        .field("horiBearingY", &FT_Glyph_Metrics::horiBearingY)
+        .field("horiAdvance", &FT_Glyph_Metrics::horiAdvance)
+        .field("vertBearingX", &FT_Glyph_Metrics::vertBearingX)
+        .field("vertBearingY", &FT_Glyph_Metrics::vertBearingY)
+        .field("vertAdvance", &FT_Glyph_Metrics::vertAdvance);
+
     value_object<FT_GlyphSlotRec>("FT_GlyphSlotRec")
         .field("linearHoriAdvance", &FT_GlyphSlotRec::linearHoriAdvance)
         .field("linearVertAdvance", &FT_GlyphSlotRec::linearVertAdvance)
         .field("advance", &FT_GlyphSlotRec::advance)
-        // .field("format", &FT_GlyphSlotRec::format)
+        .field("metrics", &FT_GlyphSlotRec::metrics)
+        .field("format", &GlyphFormat_Getter, &NoOpSetter<FT_GlyphSlotRec>)
         .field("bitmap", &FT_GlyphSlotRec::bitmap)
         .field("bitmap_left", &FT_GlyphSlotRec::bitmap_left)
         .field("bitmap_top", &FT_GlyphSlotRec::bitmap_top);
@@ -341,6 +357,12 @@ EMSCRIPTEN_BINDINGS(my_module)
         .field("style_name", &StyleName_Getter, &NoOpSetter<FT_FaceRec>)
         .field("charmaps", &CharMaps_Getter, &NoOpSetter<FT_FaceRec>)
         .field("available_sizes", &AvailableSizes_Getter, &NoOpSetter<FT_FaceRec>);
+
+    constant("FT_GLYPH_FORMAT_NONE", FT_GLYPH_FORMAT_NONE);
+    constant("FT_GLYPH_FORMAT_COMPOSITE", FT_GLYPH_FORMAT_COMPOSITE);
+    constant("FT_GLYPH_FORMAT_BITMAP", FT_GLYPH_FORMAT_BITMAP);
+    constant("FT_GLYPH_FORMAT_OUTLINE", FT_GLYPH_FORMAT_OUTLINE);
+    constant("FT_GLYPH_FORMAT_PLOTTER", FT_GLYPH_FORMAT_PLOTTER);
 
     // load targets
     constant("FT_LOAD_TARGET_NORMAL", FT_LOAD_TARGET_NORMAL);
