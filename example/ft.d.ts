@@ -141,7 +141,7 @@ export interface FT_Bitmap {
   rows: number;
   width: number;
   pitch: number;
-  buffer: Uint8Array;
+  buffer: number[];
   num_grays: number;
   pixel_mode: number;
 }

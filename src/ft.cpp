@@ -374,7 +374,14 @@ emscripten::val AvailableSizes_Getter(const FT_FaceRec &v)
 
 emscripten::val Buffer_Getter(const FT_Bitmap &v)
 {
-    return emscripten::val(emscripten::typed_memory_view(v.rows * v.pitch, v.buffer));
+    std::vector<unsigned char> vec;
+    for (int k = 0; k < v.rows * v.pitch; k++)
+    {
+        vec.push_back(v.buffer[k]);
+    }
+    return emscripten::val(vec);
+    // Following would return a memory slice (which corrupts when glyph changes)
+    // return emscripten::val(emscripten::typed_memory_view(v.rows * v.pitch, v.buffer));
 }
 
 template <typename T>
