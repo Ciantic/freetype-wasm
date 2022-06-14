@@ -21,7 +21,7 @@ Freetype.SetFont("OSP-DIN", "DIN");
 Freetype.SetCharmap(Freetype.FT_ENCODING_UNICODE);
 const size = Freetype.SetPixelSize(0, 32);
 console.log("New size", size);
-Freetype.LoadChars(Freetype.FT_LOAD_RENDER, (glyph, charc, gindex) => {
+Freetype.LoadCharsFrom(33, Freetype.FT_LOAD_RENDER, (glyph, charc, gindex) => {
   console.log("glyph", glyph, charc, gindex);
   return false;
 });

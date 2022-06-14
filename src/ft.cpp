@@ -372,16 +372,35 @@ emscripten::val AvailableSizes_Getter(const FT_FaceRec &v)
     return emscripten::val(vec);
 }
 
-emscripten::val Buffer_Getter(const FT_Bitmap &v)
+emscripten::val ImageData_Getter(const FT_Bitmap &v)
 {
-    std::vector<unsigned char> vec;
-    for (int k = 0; k < v.rows * v.pitch; k++)
+    emscripten::val ImageData = emscripten::val::global("ImageData");
+    auto width = v.pitch;
+    auto height = v.rows;
+    auto size = v.rows * v.pitch;
+
+    // Whitespace characters don't have image data
+    if (size == 0)
     {
-        vec.push_back(v.buffer[k]);
+        return emscripten::val::null();
     }
-    return emscripten::val(vec);
-    // Following would return a memory slice (which corrupts when glyph changes)
-    // return emscripten::val(emscripten::typed_memory_view(v.rows * v.pitch, v.buffer));
+
+    std::vector<unsigned char> rgba(size * 4);
+
+    // TODO: Currently only gray pixel mode works
+    for (size_t i = 0; i < size; i++)
+    {
+        rgba[i * 4 + 0] = 0;
+        rgba[i * 4 + 1] = 0;
+        rgba[i * 4 + 2] = 0;
+        rgba[i * 4 + 3] = v.buffer[i];
+    }
+
+    auto data = emscripten::val::global("Uint8ClampedArray").new_(emscripten::val::array(rgba.begin(), rgba.end()));
+
+    return ImageData.new_(emscripten::val(data),
+                          emscripten::val(width),
+                          emscripten::val(height));
 }
 
 template <typename T>
@@ -434,7 +453,7 @@ EMSCRIPTEN_BINDINGS(my_module)
         .field("rows", &FT_Bitmap::rows)
         .field("width", &FT_Bitmap::width)
         .field("pitch", &FT_Bitmap::pitch)
-        .field("buffer", &Buffer_Getter, &NoOpSetter<FT_Bitmap>)
+        .field("imagedata", &ImageData_Getter, &NoOpSetter<FT_Bitmap>)
         .field("num_grays", &FT_Bitmap::num_grays)
         .field("pixel_mode", &FT_Bitmap::pixel_mode);
 

@@ -5,7 +5,6 @@ const canvas = document.querySelector("canvas");
 const ctx = canvas.getContext("2d");
 const Freetype = await FreetypeInit();
 
-ctx.globalCompositeOperation = "overlay";
 canvas.width = window.innerWidth * window.devicePixelRatio;
 canvas.style.width = Math.floor(canvas.width / window.devicePixelRatio) + "px";
 
@@ -27,6 +26,7 @@ function createCharmap() {
    */
   let charmap = new Map();
   let offsetx = 0;
+  let offsety = line_height;
   Freetype.SetCharmap(Freetype.FT_ENCODING_UNICODE);
   Freetype.LoadChars(
     // Freetype.FT_LOAD_RENDER | Freetype.FT_LOAD_TARGET_LIGHT,
@@ -34,23 +34,16 @@ function createCharmap() {
     // Freetype.FT_LOAD_RENDER | Freetype.FT_LOAD_TARGET_LCD_V,
     Freetype.FT_LOAD_RENDER,
     (glyph, charcode) => {
-      // const dst = new ArrayBuffer(glyph.bitmap.buffer.byteLength);
-      // const newbuf = new Uint8Array(dst);
-      // newbuf.set(glyph.bitmap.buffer);
-      // glyph.bitmap.buffer = newbuf;
       charmap.set(String.fromCharCode(charcode), glyph);
-      if (glyph.bitmap.rows == 0) {
-        return;
-      }
-      // Stop iterating on 90th charcode
-      const imagedata = glyphImageData(ctx, glyph);
-      ctx.putImageData(
-        imagedata,
-        offsetx + glyph.bitmap_left,
-        0 - glyph.bitmap_top + line_height
-      );
 
-      drawGlyph(ctx, pixeldata, glyph, offsetx, line_height * 2);
+      if (glyph.bitmap.imagedata) {
+        console.log("imagedata?", glyph.bitmap.imagedata);
+        ctx.putImageData(
+          glyph.bitmap.imagedata,
+          offsetx + glyph.bitmap_left,
+          offsety - glyph.bitmap_top
+        );
+      }
 
       offsetx += glyph.advance.x >> 6;
       if (charcode > 89) {
@@ -62,69 +55,16 @@ function createCharmap() {
 }
 
 /**
- * Draw single glyph to canvas
  *
  * @param {CanvasRenderingContext2D} ctx
- * @param {import("./ft.js").FT_GlyphSlotRec} glyph
- */
-function glyphImageData(ctx, glyph) {
-  const height = glyph.bitmap.rows;
-  const width = glyph.bitmap.width;
-  const id = ctx.createImageData(width, height);
-
-  for (let y = 0; y < glyph.bitmap.rows; y++) {
-    for (let x = 0; x < glyph.bitmap.width; x++) {
-      const value = glyph.bitmap.buffer[y * glyph.bitmap.width + x];
-      const n = (y * width + x) * 4;
-
-      id.data[n + 0] = 0;
-      id.data[n + 1] = 0;
-      id.data[n + 2] = 0;
-      id.data[n + 3] = value;
-    }
-  }
-  return id;
-}
-
-/**
- * Draw single glyph to canvas
- *
- * @param {CanvasRenderingContext2D} ctx
- * @param {ImageData} pixeldata
- * @param {import("./ft.js").FT_GlyphSlotRec} glyph
- * @param {number} offsetx
- * @param {number} offsety
- */
-function drawGlyph(ctx, pixeldata, glyph, offsetx, offsety) {
-  for (let y = 0; y < glyph.bitmap.rows; y++) {
-    for (let x = 0; x < glyph.bitmap.width; x++) {
-      const value = glyph.bitmap.buffer[y * glyph.bitmap.width + x];
-      pixeldata.data[0] = 0;
-      pixeldata.data[1] = 0;
-      pixeldata.data[2] = 0;
-      pixeldata.data[3] = value;
-      ctx.putImageData(
-        pixeldata,
-        glyph.bitmap_left + offsetx + x,
-        y - glyph.bitmap_top + offsety
-      );
-    }
-  }
-}
-
-/**
- *
- * @param {CanvasRenderingContext2D} ctx
- * @param {ImageData} pixeldata
  * @param {string} text
  * @param {Map<string, import("./ft.js").FT_GlyphSlotRec>} charmap
  * @param {number} offsety
  */
-function drawText(ctx, pixeldata, text, charmap, offsetx, offsety) {
+function drawText(ctx, text, charmap, offsetx, offsety) {
   const chars = [...text];
 
   let prevGlyph = null;
-  let advance = offsetx;
   for (const currChar of chars) {
     // Get glyph from character map
     const currGlyph = charmap.get(currChar);
@@ -143,13 +83,19 @@ function drawText(ctx, pixeldata, text, charmap, offsetx, offsety) {
         0
       );
       console.log("kerning", kerning);
-      advance += kerning.x >> 6;
+      offsetx += kerning.x >> 6;
     }
 
-    drawGlyph(ctx, pixeldata, currGlyph, advance, offsety);
+    if (currGlyph.bitmap.imagedata) {
+      ctx.putImageData(
+        currGlyph.bitmap.imagedata,
+        offsetx + currGlyph.bitmap_left,
+        offsety - currGlyph.bitmap_top
+      );
+    }
 
     // Adavance the pen
-    advance += currGlyph.advance.x >> 6;
+    offsetx += currGlyph.advance.x >> 6;
     prevGlyph = currGlyph;
   }
 }
@@ -157,10 +103,9 @@ function drawText(ctx, pixeldata, text, charmap, offsetx, offsety) {
 await createFontFromUrl("OSP-DIN.ttf");
 const font = Freetype.SetFont("OSP-DIN", "DIN");
 const size = Freetype.SetPixelSize(0, 64);
-const pixeldata = ctx.createImageData(1, 1);
 const line_height = size.height >> 6;
 const charmap = createCharmap();
-drawText(ctx, pixeldata, "AVIATORS FOR THE WIN.", charmap, 0, line_height * 3);
+drawText(ctx, "AVIATORS FOR THE WIN.", charmap, 0, line_height * 3);
 console.log("Set font", font);
 console.log("Set size", size);
 console.log("Done loading chars");
