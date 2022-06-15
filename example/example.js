@@ -62,7 +62,7 @@ async function updateCache(str, cache) {
 export async function write(ctx, str, offsetx, offsety, cache) {
   await updateCache(str, cache);
   let prev = null;
-  for (const char of [...str]) {
+  for (const char of str) {
     const { glyph, bitmap } = cache.get(char) || {};
     if (glyph) {
       // Kerning
