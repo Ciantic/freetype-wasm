@@ -97,7 +97,7 @@ async function write(ctx, str, offsetx, offsety, cache) {
 
 await createFontFromUrl("OSP-DIN.ttf");
 const font = Freetype.SetFont("OSP-DIN", "DIN");
-const size = Freetype.SetPixelSize(0, 64);
+const size = Freetype.SetPixelSize(0, 32 * window.devicePixelRatio);
 const cache = new Map();
 const line_height = size.height >> 6;
 await write(ctx, "LT. AVIATORS FOR THE WIN!", 0, line_height, cache);
