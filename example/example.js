@@ -1,5 +1,6 @@
 // @ts-check
 import FreetypeInit from "./ft.js";
+const Freetype = await FreetypeInit();
 
 /**
  * @typedef {Object} DrawCacheEntry
@@ -8,13 +9,6 @@ import FreetypeInit from "./ft.js";
  *
  * @typedef {Map<string, DrawCacheEntry>} DrawCache
  */
-
-const canvas = document.querySelector("canvas");
-const ctx = canvas.getContext("2d");
-const Freetype = await FreetypeInit();
-
-canvas.width = window.innerWidth * window.devicePixelRatio;
-canvas.style.width = Math.floor(canvas.width / window.devicePixelRatio) + "px";
 
 /**
  *
@@ -93,6 +87,12 @@ export async function write(ctx, str, offsetx, offsety, cache) {
     }
   }
 }
+
+// Create pixel perfect canvas
+const canvas = document.querySelector("canvas");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth * window.devicePixelRatio;
+canvas.style.width = Math.floor(canvas.width / window.devicePixelRatio) + "px";
 
 await createFontFromUrl("OSP-DIN.ttf");
 const font = Freetype.SetFont("OSP-DIN", "DIN");
