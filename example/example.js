@@ -33,14 +33,14 @@ async function updateCache(str, cache) {
   const codes = [];
   for (const c of new Set(str)) {
     if (!cache.has(c)) {
-      codes.push(c.charCodeAt(0));
+      codes.push(c.codePointAt(0));
     }
   }
 
   // Populate missing bitmaps
   const newGlyphs = Freetype.LoadGlyphs(codes, Freetype.FT_LOAD_RENDER);
   for (const [code, glyph] of newGlyphs) {
-    const char = String.fromCharCode(code);
+    const char = String.fromCodePoint(code);
     cache.set(char, {
       glyph,
       bitmap: glyph.bitmap.imagedata
