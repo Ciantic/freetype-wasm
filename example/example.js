@@ -11,6 +11,7 @@ const Freetype = await FreetypeInit();
  */
 
 /**
+ * Create from URL
  *
  * @param {*} url
  * @returns {Promise<import("./ft.js").FT_FaceRec[]>}
@@ -20,6 +21,21 @@ async function createFontFromUrl(url) {
   const buffer = await font.arrayBuffer();
   const face = Freetype.LoadFontFromBytes(new Uint8Array(buffer));
   return face;
+}
+
+/**
+ * Create from Google fonts
+ *
+ * @param {string} fontName
+ * @param {number} index
+ * @returns {Promise<import("./ft.js").FT_FaceRec[]>}
+ */
+async function createGoogleFont(fontName, index = 0) {
+  const url = `https://fonts.googleapis.com/css?family=${fontName}`;
+  const css = await fetch(url);
+  const text = await css.text();
+  const urls = [...text.matchAll(/url\(([^\(\)]+)\)/g)].map((m) => m[1]);
+  return await createFontFromUrl(urls[index]);
 }
 
 /**
@@ -98,8 +114,8 @@ if (!canvas || !ctx) {
 canvas.width = window.innerWidth * window.devicePixelRatio;
 canvas.style.width = Math.floor(canvas.width / window.devicePixelRatio) + "px";
 
-await createFontFromUrl("OSP-DIN.ttf");
-const font = Freetype.SetFont("OSP-DIN", "DIN");
+await createGoogleFont("Permanent+Marker", 0);
+const font = Freetype.SetFont("Permanent Marker", "Regular");
 const size = Freetype.SetPixelSize(0, 32 * window.devicePixelRatio);
 const cmap = Freetype.SetCharmap(Freetype.FT_ENCODING_UNICODE);
 const cache = new Map();

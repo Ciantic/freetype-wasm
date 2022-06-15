@@ -5,7 +5,6 @@
 
 #include <emscripten/emscripten.h>
 #include <emscripten/val.h>
-#include <emscripten/fetch.h>
 #include <emscripten/bind.h>
 
 FT_Library library;
