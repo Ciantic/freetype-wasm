@@ -59,7 +59,6 @@ async function updateCache(str, cache) {
   // TODO: Is awaiting with Promise.all faster? Is GPU uploading parallelizable?
 }
 /**
- *
  * @param {CanvasRenderingContext2D} ctx
  * @param {string} str
  * @param {number} offsetx
@@ -73,7 +72,7 @@ async function write(ctx, str, offsetx, offsety, cache) {
     const { glyph, bitmap } = cache.get(char) || {};
     if (glyph) {
       // Kerning
-      if (prev && !!(font.face_flags & Freetype.FT_FACE_FLAG_KERNING)) {
+      if (prev) {
         const kerning = Freetype.GetKerning(
           prev.glyph_index,
           glyph.glyph_index,
