@@ -379,6 +379,13 @@ emscripten::val ImageData_Getter(const FT_Bitmap &v)
     auto height = v.rows;
     auto size = v.rows * v.pitch;
 
+    // TODO: Currently only gray pixel mode works
+    // https://freetype.org/freetype2/docs/reference/ft2-basic_types.html#ft_pixel_mode
+    if (v.pixel_mode != FT_PIXEL_MODE_GRAY || v.num_grays != 256)
+    {
+        return emscripten::val::null();
+    }
+
     // Whitespace characters don't have image data
     if (size == 0)
     {
@@ -387,7 +394,6 @@ emscripten::val ImageData_Getter(const FT_Bitmap &v)
 
     std::vector<unsigned char> rgba(size * 4);
 
-    // TODO: Currently only gray pixel mode works
     for (size_t i = 0; i < size; i++)
     {
         rgba[i * 4 + 0] = 0;
