@@ -1,7 +1,7 @@
 // @ts-check
 import FreetypeInit from "./ft.js";
+const Freetype = await FreetypeInit();
 
-let Freetype = await FreetypeInit();
 async function createFontFromUrl(url) {
   const font = await fetch(url);
   const buffer = await font.arrayBuffer();
