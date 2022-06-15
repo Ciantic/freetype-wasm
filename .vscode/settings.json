@@ -100,5 +100,6 @@
     "set": "cpp",
     "unordered_set": "cpp",
     "filesystem": "cpp"
-  }
+  },
+  "terminal.integrated.defaultProfile.windows": "Ubuntu (WSL)"
 }

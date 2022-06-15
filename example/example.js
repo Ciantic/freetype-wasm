@@ -31,9 +31,10 @@ async function createFontFromUrl(url) {
 async function updateCache(str, cache) {
   // Get char codes without bitmaps
   const codes = [];
-  for (const c of new Set(str)) {
-    if (!cache.has(c)) {
-      codes.push(c.codePointAt(0));
+  for (const char of new Set(str)) {
+    const point = char.codePointAt(0);
+    if (!cache.has(char) && point !== undefined) {
+      codes.push(point);
     }
   }
 
