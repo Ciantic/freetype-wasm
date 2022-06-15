@@ -95,6 +95,10 @@
     "span": "cpp",
     "queue": "cpp",
     "stack": "cpp",
-    "__assert": "cpp"
+    "__assert": "cpp",
+    "deque": "cpp",
+    "set": "cpp",
+    "unordered_set": "cpp",
+    "filesystem": "cpp"
   }
 }

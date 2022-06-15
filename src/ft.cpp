@@ -39,8 +39,8 @@ void Cleanup()
 std::vector<FT_FaceRec> LoadFontFromBytes(std::vector<unsigned char> font)
 {
     FT_Error error;
-    FT_Face ft_face;
     std::vector<FT_FaceRec> rtn;
+    FT_Face face_temp;
 
     // Store the font to a wasm memory
     signed long size = font.size();
@@ -49,19 +49,20 @@ std::vector<FT_FaceRec> LoadFontFromBytes(std::vector<unsigned char> font)
     Init();
 
     // Get num of faces
-    error = FT_New_Memory_Face(library, ptr, size, -1, &ft_face);
+    error = FT_New_Memory_Face(library, ptr, size, -1, &face_temp);
     if (error)
     {
         ::free((void *)ptr);
         fprintf(stderr, "FreeType: FT_New_Memory_Face (face index -1) failed.\n");
         return rtn;
     }
-    int num_faces = ft_face->num_faces;
-    FT_Done_Face(ft_face);
+    int num_faces = face_temp->num_faces;
+    FT_Done_Face(face_temp);
 
     // Iterate faces stored in the font
     for (int i = 0; i < num_faces; i++)
     {
+        FT_Face ft_face;
         error = FT_New_Memory_Face(library, ptr, size, i, &ft_face);
         if (error)
         {
@@ -245,7 +246,7 @@ void LoadCharsFrom(FT_ULong first_charcode, FT_Int32 load_flags, emscripten::val
 {
     if (current_face == NULL)
     {
-        fprintf(stderr, "FreeType: Current font is not set, use first `LoadFontFromBytes` and then `LoadChar`\n");
+        fprintf(stderr, "FreeType: Current font is not set.\n");
         return;
     }
 
@@ -270,11 +271,34 @@ void LoadCharsFrom(FT_ULong first_charcode, FT_Int32 load_flags, emscripten::val
     }
 }
 
+emscripten::val LoadCharss(std::vector<FT_ULong> charcodes, FT_Int32 load_flags)
+{
+    emscripten::val mappe = emscripten::val::global("Map").new_();
+
+    if (current_face == NULL)
+    {
+        fprintf(stderr, "FreeType: Current font is not set.\n");
+        return mappe;
+    }
+    for (auto &c : charcodes)
+    {
+        FT_Error error = FT_Load_Char(current_face, c, load_flags);
+        if (error)
+        {
+            fprintf(stderr, "Can't load char '%lu'\n", c);
+            continue;
+        }
+        mappe.call<void>("set", emscripten::val(c), emscripten::val(*current_face->glyph));
+    }
+
+    return mappe;
+}
+
 void LoadChars(FT_Int32 load_flags, emscripten::val cb)
 {
     if (current_face == NULL)
     {
-        fprintf(stderr, "FreeType: Current font is not set, use first `LoadFontFromBytes` and then `LoadChar`\n");
+        fprintf(stderr, "FreeType: Current font is not set.\n");
         return;
     }
 
@@ -418,6 +442,9 @@ void NoOpSetter(T &v, emscripten::val setv) {}
 using namespace emscripten;
 EMSCRIPTEN_BINDINGS(my_module)
 {
+    // register_vector<int>("VectorInt");
+    // register_map<FT_ULong, FT_GlyphSlotRec>("MapChars");
+
     function("LoadFontFromBytes", &LoadFontFromBytes);
     function("UnloadFont", &UnloadFont);
     function("SetFont", &SetFont);
@@ -426,6 +453,7 @@ EMSCRIPTEN_BINDINGS(my_module)
     function("SetCharmap", &SetCharmap);
     function("SetCharmapByIndex", &SetCharmapByIndex);
     function("LoadChars", &LoadChars);
+    function("LoadCharss", &LoadCharss);
     function("LoadCharsFrom", &LoadCharsFrom);
     function("GetKerning", &GetKerning);
     function("Cleanup", &Cleanup);
@@ -586,6 +614,32 @@ namespace emscripten
 {
     namespace internal
     {
+        /* This does not work...
+        template <typename T, typename V, typename P, typename A>
+        struct BindingType<std::map<T, V, P, A>>
+        {
+            using ValBinding = BindingType<val>;
+            using WireType = ValBinding::WireType;
+
+            static WireType toWireType(const std::map<T, V, P, A> &vec)
+            {
+                return ValBinding::toWireType(val::null());
+            }
+
+            static std::map<T, V, P, A> fromWireType(WireType value)
+            {
+                return std::map<T, V, P, A>();
+                // return vecFromJSArray<T>(ValBinding::fromWireType(value));
+            }
+        };
+
+        template <typename T, typename V, typename P, typename A>
+        struct TypeID<T, std::map<T, V, P, A>>
+        {
+            static constexpr TYPEID get() { return TypeID<val>::get(); }
+        };
+        */
+
         // Automatic conversion of std::vector<T> to JS array
         // https://github.com/emscripten-core/emscripten/issues/11070#issuecomment-717675128
         template <typename T, typename Allocator>
@@ -606,11 +660,11 @@ namespace emscripten
         };
 
         template <typename T>
-        struct TypeID<T,
-                      typename std::enable_if_t<std::is_same<
-                          typename Canonicalized<T>::type,
-                          std::vector<typename Canonicalized<T>::type::value_type,
-                                      typename Canonicalized<T>::type::allocator_type>>::value>>
+        struct TypeID<T, typename std::enable_if_t<
+                             std::is_same<
+                                 typename Canonicalized<T>::type,
+                                 std::vector<typename Canonicalized<T>::type::value_type,
+                                             typename Canonicalized<T>::type::allocator_type>>::value>>
         {
             static constexpr TYPEID get() { return TypeID<val>::get(); }
         };
