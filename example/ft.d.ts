@@ -16,21 +16,16 @@ interface FreetypeModule {
 
   SetPixelSize: (pixel_width: number, pixel_height: number) => FT_Size_Metrics;
 
-  LoadCharss: (
+  LoadGlyphs: (
     charcodes: number[],
     load_flags: number
   ) => Map<number, FT_GlyphSlotRec>;
 
-  LoadChars: (
-    load_flags: number,
-    cb: (glyph: FT_GlyphSlotRec, charcode: number, glyph_index: number) => void
-  ) => false | undefined;
-
-  LoadCharsFrom: (
+  LoadGlyphsFromCharmap: (
     first_charcode: number,
-    load_flags: number,
-    cb: (glyph: FT_GlyphSlotRec, charcode: number, glyph_index: number) => void
-  ) => false | undefined;
+    last_charcode: number,
+    load_flags: number
+  ) => Map<number, FT_GlyphSlotRec>;
 
   GetKerning: (
     left_glyph_index: number,
@@ -38,8 +33,8 @@ interface FreetypeModule {
     kern_mode: number
   ) => FT_Vector;
 
-  SetCharmap: (encoding: number) => boolean;
-  SetCharmapByIndex: (index: number) => boolean;
+  SetCharmap: (encoding: number) => FT_CharMapRec;
+  SetCharmapByIndex: (index: number) => FT_CharMapRec;
 
   Cleanup: () => void;
 

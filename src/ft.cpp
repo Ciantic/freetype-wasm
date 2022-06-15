@@ -29,10 +29,29 @@ void Init()
 
 void Cleanup()
 {
+    // Free up the Font face structs
+    for (auto &fs : face_map)
+    {
+        for (auto &f : fs.second)
+        {
+            FT_Done_Face(f.second);
+        }
+    }
+    face_map.clear();
+
+    // Free up the font bytes
+    for (auto &bs : face_ptrs)
+    {
+        for (auto &p : bs.second)
+            ::free((void *)p);
+    }
+    face_ptrs.clear();
+
+    // Free the Freetype library
     if (inited)
     {
         FT_Done_FreeType(library);
-        // TODO: Clear library and faces
+        inited = false;
     }
 }
 
@@ -86,10 +105,7 @@ std::vector<FT_FaceRec> LoadFontFromBytes(std::vector<unsigned char> font)
             face_ptrs[ft_face->family_name].push_back(ptr);
         }
 
-        printf("Font '%s' with style '%s' loaded.\n", ft_face->family_name, ft_face->style_name);
-
         face_map[ft_face->family_name][ft_face->style_name] = ft_face;
-
         rtn.push_back(*ft_face);
 
         // Note: each face is left in the memory, no FT_Done_Face is called. To
@@ -127,38 +143,36 @@ void UnloadFont(std::string familyName)
     face_ptrs.erase(familyName);
 }
 
-FT_FaceRec SetFont(std::string faceName, std::string styleName)
+emscripten::val SetFont(std::string faceName, std::string styleName)
 {
     current_face = face_map[faceName][styleName];
     if (current_face == NULL)
     {
-        // TODO: Return null
+        return emscripten::val::null();
     }
-    return *current_face;
+    return emscripten::val(*current_face);
 }
 
-FT_Size_Metrics SetCharSize(FT_F26Dot6 char_width, FT_F26Dot6 char_height, FT_UInt horz_resolution, FT_UInt vert_resolution)
+emscripten::val SetCharSize(FT_F26Dot6 char_width, FT_F26Dot6 char_height, FT_UInt horz_resolution, FT_UInt vert_resolution)
 {
 
     if (current_face == NULL)
     {
         fprintf(stderr, "FreeType: Unable to set size, font is not set. Use `SetFont` first.");
-        // TODO: Return null
-        return current_face->size->metrics;
+        return emscripten::val::null();
     }
 
     FT_Error error = FT_Set_Char_Size(current_face, char_width, char_height, horz_resolution, vert_resolution);
     if (error)
     {
         fprintf(stderr, "FreeType: Error setting size.\n");
-        // TODO: Return null
-        return current_face->size->metrics;
+        return emscripten::val::null();
     }
 
-    return current_face->size->metrics;
+    return emscripten::val(current_face->size->metrics);
 }
 
-FT_Size_Metrics SetPixelSize(
+emscripten::val SetPixelSize(
     FT_UInt pixel_width,
     FT_UInt pixel_height)
 {
@@ -166,45 +180,43 @@ FT_Size_Metrics SetPixelSize(
     if (current_face == NULL)
     {
         fprintf(stderr, "FreeType: Unable to set size, font is not set. Use `SetFont` first.");
-        // TODO: Return null
-        return current_face->size->metrics;
+        return emscripten::val::null();
     }
 
     FT_Error error = FT_Set_Pixel_Sizes(current_face, pixel_width, pixel_height);
     if (error)
     {
         fprintf(stderr, "FreeType: Error setting size.\n");
-        // TODO: Return null
-        return current_face->size->metrics;
+        return emscripten::val::null();
     }
 
-    return current_face->size->metrics;
+    return emscripten::val(current_face->size->metrics);
 }
 
-bool SetCharmap(unsigned int encoding)
+emscripten::val SetCharmap(unsigned int encoding)
 {
     if (current_face == NULL)
     {
         fprintf(stderr, "FreeType: Current font is not set. Unable to set charmap.");
-        return false;
+        return emscripten::val::null();
     }
 
     FT_Error error = FT_Select_Charmap(current_face, (FT_Encoding)encoding);
     if (error)
     {
         fprintf(stderr, "FreeType: Error selecting charmap.\n");
-        return false;
+        return emscripten::val::null();
     }
 
-    return true;
+    return emscripten::val(*current_face->charmap);
 }
 
-bool SetCharmapByIndex(int index)
+emscripten::val SetCharmapByIndex(int index)
 {
     if (current_face == NULL)
     {
         fprintf(stderr, "FreeType: Current font is not set. Unable to set charmap.\n");
-        return false;
+        return emscripten::val::null();
     }
 
     for (int k = 0; k < current_face->num_charmaps; k++)
@@ -215,14 +227,14 @@ bool SetCharmapByIndex(int index)
             if (error)
             {
                 fprintf(stderr, "FreeType: Error setting charmap.\n");
-                return false;
+                return emscripten::val::null();
             }
-            return true;
+            return emscripten::val(*current_face->charmap);
         }
     }
 
     fprintf(stderr, "Charmap not found with index '%d'.\n", index);
-    return false;
+    return emscripten::val::null();
 }
 
 // TODO: Is transform any good? In docs it says:
@@ -242,16 +254,27 @@ bool SetCharmapByIndex(int index)
 
 // https://freetype.org/freetype2/docs/reference/ft2-base_interface.html#ft_load_xxx
 
-void LoadCharsFrom(FT_ULong first_charcode, FT_Int32 load_flags, emscripten::val cb)
+emscripten::val LoadGlyphsFromCharmap(FT_ULong first_charcode, FT_ULong last_charcode, FT_Int32 load_flags)
 {
+    emscripten::val mappe = emscripten::val::global("Map").new_();
+
     if (current_face == NULL)
     {
         fprintf(stderr, "FreeType: Current font is not set.\n");
-        return;
+        return mappe;
     }
 
     FT_UInt gindex;
-    FT_ULong charcode = FT_Get_Next_Char(current_face, first_charcode, &gindex);
+    FT_ULong charcode;
+
+    if (first_charcode != 0)
+    {
+        charcode = FT_Get_Next_Char(current_face, first_charcode - 1, &gindex);
+    }
+    else
+    {
+        charcode = FT_Get_First_Char(current_face, &gindex);
+    }
 
     while (gindex != 0)
     {
@@ -259,19 +282,24 @@ void LoadCharsFrom(FT_ULong first_charcode, FT_Int32 load_flags, emscripten::val
         if (error)
         {
             fprintf(stderr, "Can't load char '%lu'\n", charcode);
+            charcode = FT_Get_Next_Char(current_face, charcode, &gindex);
+            if (charcode > last_charcode)
+            {
+                break;
+            }
             continue;
         }
-        auto value = cb(*current_face->glyph, charcode, gindex);
-        if (value.isFalse())
+        mappe.call<void>("set", emscripten::val(charcode), emscripten::val(*current_face->glyph));
+        charcode = FT_Get_Next_Char(current_face, charcode, &gindex);
+        if (charcode > last_charcode)
         {
             break;
         }
-
-        charcode = FT_Get_Next_Char(current_face, charcode, &gindex);
     }
+    return mappe;
 }
 
-emscripten::val LoadCharss(std::vector<FT_ULong> charcodes, FT_Int32 load_flags)
+emscripten::val LoadGlyphs(std::vector<FT_ULong> charcodes, FT_Int32 load_flags)
 {
     emscripten::val mappe = emscripten::val::global("Map").new_();
 
@@ -292,34 +320,6 @@ emscripten::val LoadCharss(std::vector<FT_ULong> charcodes, FT_Int32 load_flags)
     }
 
     return mappe;
-}
-
-void LoadChars(FT_Int32 load_flags, emscripten::val cb)
-{
-    if (current_face == NULL)
-    {
-        fprintf(stderr, "FreeType: Current font is not set.\n");
-        return;
-    }
-
-    FT_UInt gindex;
-    FT_ULong charcode = FT_Get_First_Char(current_face, &gindex);
-    while (gindex != 0)
-    {
-        FT_Error error = FT_Load_Char(current_face, charcode, load_flags);
-        if (error)
-        {
-            fprintf(stderr, "Can't load char '%lu'\n", charcode);
-            continue;
-        }
-        auto value = cb(*current_face->glyph, charcode, gindex);
-        if (value.isFalse())
-        {
-            break;
-        }
-
-        charcode = FT_Get_Next_Char(current_face, charcode, &gindex);
-    }
 }
 
 FT_Vector GetKerning(FT_UInt left_glyph_index, FT_UInt right_glyph_index, FT_UInt kern_mode)
@@ -356,14 +356,16 @@ emscripten::val Size_Getter(const FT_FaceRec &v)
 
 emscripten::val Encoding_Getter(const FT_CharMapRec &v)
 {
+    return emscripten::val((unsigned long)v.encoding);
+
     // Encoding is four letters stored in a 32 bit integer
-    char enc[5] = {
-        (char)((v.encoding >> (8 * 3)) & 0xff),
-        (char)((v.encoding >> (8 * 2)) & 0xff),
-        (char)((v.encoding >> (8 * 1)) & 0xff),
-        (char)((v.encoding >> (8 * 0)) & 0xff),
-        0};
-    return emscripten::val(std::string(enc));
+    // char enc[5] = {
+    //     (char)((v.encoding >> (8 * 3)) & 0xff),
+    //     (char)((v.encoding >> (8 * 2)) & 0xff),
+    //     (char)((v.encoding >> (8 * 1)) & 0xff),
+    //     (char)((v.encoding >> (8 * 0)) & 0xff),
+    //     0};
+    // return emscripten::val(std::string(enc));
 }
 
 emscripten::val StyleName_Getter(const FT_FaceRec &v)
@@ -452,9 +454,8 @@ EMSCRIPTEN_BINDINGS(my_module)
     function("SetPixelSize", &SetPixelSize);
     function("SetCharmap", &SetCharmap);
     function("SetCharmapByIndex", &SetCharmapByIndex);
-    function("LoadChars", &LoadChars);
-    function("LoadCharss", &LoadCharss);
-    function("LoadCharsFrom", &LoadCharsFrom);
+    function("LoadGlyphs", &LoadGlyphs);
+    function("LoadGlyphsFromCharmap", &LoadGlyphsFromCharmap);
     function("GetKerning", &GetKerning);
     function("Cleanup", &Cleanup);
 
@@ -492,6 +493,7 @@ EMSCRIPTEN_BINDINGS(my_module)
         .field("pixel_mode", &FT_Bitmap::pixel_mode);
 
     value_object<FT_CharMapRec>("FT_CharMapRec")
+        // .field("encoding", &FT_CharMapRec::encoding)
         .field("encoding", &Encoding_Getter, &NoOpSetter<FT_CharMapRec>)
         .field("platform_id", &FT_CharMapRec::platform_id)
         .field("encoding_id", &FT_CharMapRec::encoding_id);

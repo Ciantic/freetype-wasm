@@ -1,7 +1,7 @@
 // @ts-check
 import FreetypeInit from "./ft.js";
+
 let Freetype = await FreetypeInit();
-console.log("Freetype", Freetype);
 async function createFontFromUrl(url) {
   const font = await fetch(url);
   const buffer = await font.arrayBuffer();
@@ -14,17 +14,21 @@ async function createFontFromUrl(url) {
 //   "https://fonts.gstatic.com/s/opensans/v29/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsiH0B4gaVI.woff2"
 // );
 const font = await createFontFromUrl("OSP-DIN.ttf");
-console.log("Loaded font", font);
-console.log("Next is already loaded error:");
-await createFontFromUrl("OSP-DIN.ttf");
-Freetype.SetFont("OSP-DIN", "DIN");
-Freetype.SetCharmap(Freetype.FT_ENCODING_UNICODE);
+const font2 = await createFontFromUrl("OSP-DIN.ttf");
+const setf = Freetype.SetFont("OSP-DIN", "DIN");
+const charm = Freetype.SetCharmap(Freetype.FT_ENCODING_UNICODE);
 const size = Freetype.SetPixelSize(0, 32);
-console.log("New size", size);
-Freetype.LoadCharsFrom(33, Freetype.FT_LOAD_RENDER, (glyph, charc, gindex) => {
-  console.log("glyph", glyph, charc, gindex);
-  return false;
-});
+const chars = Freetype.LoadGlyphsFromCharmap(0, 9999, Freetype.FT_LOAD_RENDER);
+console.assert(
+  charm.encoding === Freetype.FT_ENCODING_UNICODE,
+  "Charmap not set",
+  charm
+);
+console.assert(setf.family_name === "OSP-DIN", "Font set returned value", setf);
+console.assert(font[0].family_name === "OSP-DIN", "Font should load", font);
+console.assert(font2.length === 0, "Font should not reload", font2);
+console.assert(size.height === 2368, "Font size not proper", size);
+console.assert(chars.size === 140, "Glyphs not loaded", chars);
 Freetype.UnloadFont("OSP-DIN");
-console.log("Set should fail");
-Freetype.SetFont("OSP-DIN", "DIN");
+console.assert(null === Freetype.SetFont("OSP-DIN", "DIN"), "Failure");
+Freetype.Cleanup();

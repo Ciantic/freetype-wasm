@@ -39,13 +39,12 @@ async function updateCache(str, cache) {
   const codes = [];
   for (const c of new Set(str)) {
     if (!cache.has(c)) {
-      console.log("c", c);
       codes.push(c.charCodeAt(0));
     }
   }
 
   // Populate missing bitmaps
-  const newGlyphs = Freetype.LoadCharss(codes, Freetype.FT_LOAD_RENDER);
+  const newGlyphs = Freetype.LoadGlyphs(codes, Freetype.FT_LOAD_RENDER);
   for (const [code, glyph] of newGlyphs) {
     const char = String.fromCharCode(code);
     cache.set(char, {
@@ -65,7 +64,7 @@ async function updateCache(str, cache) {
  * @param {number} offsety
  * @param {DrawCache} cache
  */
-async function write(ctx, str, offsetx, offsety, cache) {
+export async function write(ctx, str, offsetx, offsety, cache) {
   await updateCache(str, cache);
   let prev = null;
   for (const char of [...str]) {
@@ -98,8 +97,15 @@ async function write(ctx, str, offsetx, offsety, cache) {
 await createFontFromUrl("OSP-DIN.ttf");
 const font = Freetype.SetFont("OSP-DIN", "DIN");
 const size = Freetype.SetPixelSize(0, 32 * window.devicePixelRatio);
+const cmap = Freetype.SetCharmap(Freetype.FT_ENCODING_UNICODE);
 const cache = new Map();
 const line_height = size.height >> 6;
+if (!cmap) {
+  console.assert(false, "Unicode charmap is not found");
+}
+console.log("Font", font);
+console.log("Size", size);
+console.log("Charmap", cmap);
 await write(ctx, "LT. AVIATORS FOR THE WIN!", 0, line_height, cache);
 await write(ctx, "Lt. Aviators For The Win!", 0, line_height * 2, cache);
 
