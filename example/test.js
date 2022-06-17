@@ -36,3 +36,4 @@ console.assert(chars.size > 10, "Glyphs not loaded", chars.size);
 Freetype.UnloadFont("Karla");
 console.assert(null === Freetype.SetFont("Karla", "DIN"), "Failure");
 Freetype.Cleanup();
+console.log("✅ Test finished without assertions");
