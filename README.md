@@ -15,6 +15,12 @@ It works, more how to instructions will be forthcoming.
 Build.sh generates `example/freetype.js` making the example directory
 functional.
 
+## Run tests with deno
+
+```bash
+./deno run --allow-net example/test.js
+```
+
 ## TODO
 
 - Bundle ft.js to NPM or Deno.land/x
