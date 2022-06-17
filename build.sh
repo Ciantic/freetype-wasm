@@ -16,3 +16,12 @@ emcc src/ft.cpp \
     -s EXPORT_NAME=FreeType \
     -s SINGLE_FILE=1 \
     -o example/freetype.js
+
+# Prepend texts to the built file
+printf '%s\n/*\n%s\n\n%s\n%s\n*/\n%s\n' \
+    "/// <reference types=\"./freetype.d.ts\" />" \
+    "Freetype WASM library: https://github.com/Ciantic/freetype-wasm" \
+    "$(cat freetype2/LICENSE.TXT)" \
+    "$(cat brotli/LICENSE)" \
+    "$(cat example/freetype.js)" \
+    >example/freetype.js
