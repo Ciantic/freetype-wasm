@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ -z ${EMSDK+x} ]; then
-    source "./emsdk/emsdk_env.sh"
+    source "./emsdk/emsdk_env.sh" || exit
 fi
 
 mkdir -p brotli/buildc
