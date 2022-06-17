@@ -15,4 +15,4 @@ emcc src/ft.cpp \
     -s MODULARIZE=1 \
     -s EXPORT_NAME=FreeType \
     -s SINGLE_FILE=1 \
-    -o example/ft.js
+    -o example/freetype.js

@@ -1,10 +1,10 @@
 // @ts-check
-import FreetypeInit from "./ft.js";
+import FreetypeInit from "./freetype.js";
 const Freetype = await FreetypeInit();
 
 /**
  * @typedef {Object} DrawCacheEntry
- * @property {import("./ft.js").FT_GlyphSlotRec} glyph
+ * @property {import("./freetype.js").FT_GlyphSlotRec} glyph
  * @property {ImageBitmap|null} bitmap
  *
  * @typedef {Map<string, DrawCacheEntry>} DrawCache
@@ -14,7 +14,7 @@ const Freetype = await FreetypeInit();
  * Create from URL
  *
  * @param {*} url
- * @returns {Promise<import("./ft.js").FT_FaceRec[]>}
+ * @returns {Promise<import("./freetype.js").FT_FaceRec[]>}
  */
 async function createFontFromUrl(url) {
   const font = await fetch(url);
@@ -28,7 +28,7 @@ async function createFontFromUrl(url) {
  *
  * @param {string} fontName
  * @param {number} index
- * @returns {Promise<import("./ft.js").FT_FaceRec[]>}
+ * @returns {Promise<import("./freetype.js").FT_FaceRec[]>}
  */
 async function createGoogleFont(fontName, index = 0) {
   const url = `https://fonts.googleapis.com/css?family=${fontName}`;
