@@ -35,3 +35,6 @@ printf '%s\n/*!\n%s\n%s\n\n%s\n%s\n\n%s\n%s\n*/\n%s\n' \
 sed -i 's|\(readAsync\s*=\s*(url,\s*onload,\s*onerror)\s*=>\s*{\)|\1fetch(url).then(async response => { onload(await response.arrayBuffer());}).catch(onerror); return;|g' example/freetype.js
 
 echo "✅ Build finished"
+
+./test.sh
+

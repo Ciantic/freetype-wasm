@@ -19,7 +19,7 @@
             "label": "test",
             "type": "shell",
             "group": "test",
-            "command": "deno run --allow-read --allow-net ./example/test.js"
+            "command": "./test.sh"
         }
     ]
 }
