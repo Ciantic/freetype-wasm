@@ -399,7 +399,6 @@ emscripten::val AvailableSizes_Getter(const FT_FaceRec &v)
 
 emscripten::val ImageData_Getter(const FT_Bitmap &v)
 {
-    emscripten::val ImageData = emscripten::val::global("ImageData");
     auto width = v.pitch;
     auto height = v.rows;
     auto size = v.rows * v.pitch;
@@ -428,6 +427,19 @@ emscripten::val ImageData_Getter(const FT_Bitmap &v)
     }
 
     auto data = emscripten::val::global("Uint8ClampedArray").new_(emscripten::val::array(rgba.begin(), rgba.end()));
+
+    emscripten::val ImageData = emscripten::val::global("ImageData");
+
+    // Deno has no ImageData, use object that has same properties instead
+    if (ImageData.isUndefined())
+    {
+        emscripten::val ImageDataObj = emscripten::val::global("Object").new_();
+        ImageDataObj.set("width", emscripten::val(width));
+        ImageDataObj.set("height", emscripten::val(height));
+        ImageDataObj.set("dataArray", data);
+        ImageDataObj.set("colorSpace", "srgb");
+        return ImageDataObj;
+    }
 
     return ImageData.new_(emscripten::val(data),
                           emscripten::val(width),
