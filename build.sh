@@ -16,7 +16,6 @@ emcc src/ft.cpp \
     -s EXPORT_ES6=1 \
     -s MODULARIZE=1 \
     -s EXPORT_NAME=FreeType \
-    -s SINGLE_FILE=1 \
     -o example/freetype.js
 
 # Prepend texts to the built file
@@ -30,5 +29,9 @@ printf '%s\n/*!\n%s\n%s\n\n%s\n%s\n\n%s\n%s\n*/\n%s\n' \
     "https://github.com/google/brotli/blob/master/LICENSE" \
     "$(cat example/freetype.js)" \
     > example/freetype.js
+
+# Deno does not like XMLHttpRequest, and emscripten uses old school XHR
+# Following trick replaces the required one with `fetch`
+sed -i 's|\(readAsync\s*=\s*(url,\s*onload,\s*onerror)\s*=>\s*{\)|\1fetch(url).then(async response => { onload(await response.arrayBuffer());}).catch(onerror); return;|g' example/freetype.js
 
 echo "✅ Build finished"
