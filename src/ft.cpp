@@ -399,31 +399,53 @@ emscripten::val AvailableSizes_Getter(const FT_FaceRec &v)
 
 emscripten::val ImageData_Getter(const FT_Bitmap &v)
 {
-    auto width = v.pitch;
-    auto height = v.rows;
-    auto size = v.rows * v.pitch;
+    // Convert to RGBA
 
-    // TODO: Currently only gray pixel mode works
-    // https://freetype.org/freetype2/docs/reference/ft2-basic_types.html#ft_pixel_mode
-    if (v.pixel_mode != FT_PIXEL_MODE_GRAY || v.num_grays != 256)
-    {
-        return emscripten::val::null();
-    }
+    const auto width = v.width;
+    const auto height = v.rows;
+    const auto pixels = v.rows * v.width;
+    const auto apitch = abs(v.pitch);
+    const auto bufsize = v.rows * apitch;
 
     // Whitespace characters don't have image data
-    if (size == 0)
+    if (bufsize == 0)
     {
         return emscripten::val::null();
     }
 
-    std::vector<unsigned char> rgba(size * 4);
-
-    for (size_t i = 0; i < size; i++)
+    std::vector<unsigned char> rgba(pixels * 4);
+    if (v.pixel_mode == FT_PIXEL_MODE_GRAY && v.num_grays == 256)
     {
-        rgba[i * 4 + 0] = 0;
-        rgba[i * 4 + 1] = 0;
-        rgba[i * 4 + 2] = 0;
-        rgba[i * 4 + 3] = v.buffer[i];
+        for (size_t i = 0; i < bufsize; i++)
+        {
+            rgba[i * 4 + 0] = 0;
+            rgba[i * 4 + 1] = 0;
+            rgba[i * 4 + 2] = 0;
+            rgba[i * 4 + 3] = v.buffer[i];
+        }
+    }
+    else if (v.pixel_mode == FT_PIXEL_MODE_MONO)
+    {
+        auto nthpixel = 0;
+
+        for (auto y = 0; y < height; y++)
+        {
+            for (auto x = 0; x < width; x++)
+            {
+                const auto byteoffset = x / 8;
+                const auto buffervalue = v.buffer[y * apitch + byteoffset];
+                const auto bitoffset = x % 8;
+                const auto bitvalue = (buffervalue >> (7 - bitoffset)) & 1;
+                rgba[nthpixel++ * 4 + 3] = 255 * bitvalue;
+            }
+        }
+    }
+    else
+    {
+        // TODO: Other pixel modes
+        // https://freetype.org/freetype2/docs/reference/ft2-basic_types.html#ft_pixel_mode
+        // Other pixel modes not supported yet
+        return emscripten::val::null();
     }
 
     auto data = emscripten::val::global("Uint8ClampedArray").new_(emscripten::val::array(rgba.begin(), rgba.end()));
@@ -436,7 +458,7 @@ emscripten::val ImageData_Getter(const FT_Bitmap &v)
         emscripten::val ImageDataObj = emscripten::val::global("Object").new_();
         ImageDataObj.set("width", emscripten::val(width));
         ImageDataObj.set("height", emscripten::val(height));
-        ImageDataObj.set("dataArray", data);
+        ImageDataObj.set("data", data);
         ImageDataObj.set("colorSpace", "srgb");
         return ImageDataObj;
     }

@@ -17,12 +17,50 @@ async function createGoogleFont(fontName) {
   return await createFontFromUrl(urls[0]);
 }
 
+/**
+ * Draw glyph to console
+ * @param {import("./freetype.js").FT_GlyphSlotRec} glyph 
+ */
+function consoleDrawGlyph(glyph) {
+  const pixels = [""];
+  const data = glyph.bitmap.imagedata?.data;
+  const width = glyph.bitmap.imagedata?.width;
+  const height = glyph.bitmap.imagedata?.height;
+  if (!data || !width || !height) {
+    return;
+  }
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const element = data[(y*width + x + 1) * 4 - 1];
+      if (element === undefined) {
+        continue
+      } else if (element === 0) {
+        pixels.push(" ")
+      } else if (element > 200) {
+        pixels.push("#")
+      } else if (element < 128)  {
+        pixels.push(".")
+      } else if (element < 200)  {
+        pixels.push("o")
+      }
+    }
+    pixels.push("\n");
+  }
+  console.log(pixels.join(""));
+}
+
 const font = await createGoogleFont("Karla");
 const emptyarr = await createGoogleFont("Karla");
 const setf = Freetype.SetFont("Karla", "Regular");
 const charm = Freetype.SetCharmap(Freetype.FT_ENCODING_UNICODE);
-const size = Freetype.SetPixelSize(0, 32);
+const size = Freetype.SetPixelSize(16, 0);
 const chars = Freetype.LoadGlyphsFromCharmap(0, 9999, Freetype.FT_LOAD_RENDER);
+const charsmono = Freetype.LoadGlyphsFromCharmap(0x43, 0x44, Freetype.FT_LOAD_RENDER | Freetype.FT_LOAD_MONOCHROME | Freetype.FT_LOAD_TARGET_MONO);
+const monod = charsmono.get(0x44); // 0x33 = letter D
+const chard = chars.get(0x44);
+if (!chard || !monod) {
+  throw new Error("Glyphs not loaded");
+}
 console.assert(
   charm.encoding === Freetype.FT_ENCODING_UNICODE,
   "Charmap not set",
@@ -31,8 +69,20 @@ console.assert(
 console.assert(setf.family_name === "Karla", "Font set returned value", setf);
 console.assert(font[0].family_name === "Karla", "Font should load", font);
 console.assert(emptyarr.length === 0, "Font should not reload", emptyarr);
-console.assert(size.height === 2368, "Font size not proper", size);
-console.assert(chars.size > 10, "Glyphs not loaded", chars.size);
+console.assert(size.x_ppem === 16, "Font size not proper", size);
+console.assert(chars.size > 10, "Antialized glyphs not loaded", chars.size);
+console.assert(charsmono.size > 10, "Monochrome glyphs not loaded", chars.size);
+console.assert(chard?.bitmap.imagedata != null, "Antialiased data does not exist");
+console.assert(chard.bitmap.pixel_mode === 2, "Gray mode is not enabled", chard.bitmap.pixel_mode);
+console.assert(monod?.bitmap.imagedata != null, "Monochrome data does not exist");
+console.assert(monod.bitmap.pixel_mode === 1, "Monochrome data is not monochrome", monod.bitmap.pixel_mode);
+
+console.log("You should see an antialiaised letter D in the console:");
+consoleDrawGlyph(chard);
+
+console.log("You should see an monochrome letter D in the console:");
+consoleDrawGlyph(monod);
+
 Freetype.UnloadFont("Karla");
 console.assert(null === Freetype.SetFont("Karla", "DIN"), "Failure");
 Freetype.Cleanup();
