@@ -10,7 +10,7 @@ async function createFontFromUrl(url) {
 }
 
 async function createGoogleFont(fontName) {
-  const url = `https://fonts.googleapis.com/css?family=${fontName}`;
+  const url = `https://fonts.googleapis.com/css?family=${fontName}&text=D`;
   const css = await fetch(url);
   const text = await css.text();
   const urls = [...text.matchAll(/url\(([^\(\)]+)\)/g)].map((m) => m[1]);
