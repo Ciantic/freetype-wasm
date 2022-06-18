@@ -4,7 +4,7 @@
   "description": "FreeType WASM wrapper for browsers and Deno",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Ciantic/freetype-wasm.git"
+    "url": "https://github.com/Ciantic/freetype-wasm.git"
   },
   "keywords": [
     "freetype",
@@ -16,7 +16,14 @@
     "url": "https://github.com/Ciantic/freetype-wasm/issues"
   },
   "homepage": "https://github.com/Ciantic/freetype-wasm#readme",
+  "type": "module",
+  "exports": {
+    "./dist": "./dist/freetype.js"
+  },
+  "module": "./dist/freetype.js",
+  "types": "./dist/freetype.d.ts",
   "files": [
+    "LICENSE",
     "README.md",
     "dist/freetype.js",
     "dist/freetype.wasm",
