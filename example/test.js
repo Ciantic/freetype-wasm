@@ -55,7 +55,7 @@ const setf = Freetype.SetFont("Karla", "Regular");
 const charm = Freetype.SetCharmap(Freetype.FT_ENCODING_UNICODE);
 const size = Freetype.SetPixelSize(16, 0);
 const chars = Freetype.LoadGlyphsFromCharmap(0, 9999, Freetype.FT_LOAD_RENDER);
-const charsmono = Freetype.LoadGlyphsFromCharmap(0x43, 0x44, Freetype.FT_LOAD_RENDER | Freetype.FT_LOAD_MONOCHROME | Freetype.FT_LOAD_TARGET_MONO);
+const charsmono = Freetype.LoadGlyphsFromCharmap(0, 9999, Freetype.FT_LOAD_RENDER | Freetype.FT_LOAD_MONOCHROME | Freetype.FT_LOAD_TARGET_MONO);
 const monod = charsmono.get(0x44); // 0x33 = letter D
 const chard = chars.get(0x44);
 if (!chard || !monod) {
