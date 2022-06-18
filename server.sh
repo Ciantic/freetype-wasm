@@ -1,3 +1,3 @@
 #!/bin/bash
 
-light-server -s example -p 7000
+deno run --allow-net --allow-read https://deno.land/std@0.144.0/http/file_server.ts --port 7000

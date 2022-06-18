@@ -1,5 +1,5 @@
 // @ts-check
-import FreetypeInit from "./freetype.js";
+import FreetypeInit from "../dist/freetype.js";
 const Freetype = await FreetypeInit();
 
 async function createFontFromUrl(url) {
@@ -19,7 +19,7 @@ async function createGoogleFont(fontName) {
 
 /**
  * Draw glyph to console
- * @param {import("./freetype.js").FT_GlyphSlotRec} glyph 
+ * @param {import("../dist/freetype.js").FT_GlyphSlotRec} glyph 
  */
 function consoleDrawGlyph(glyph) {
   const pixels = [""];

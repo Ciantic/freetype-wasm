@@ -2,10 +2,10 @@ brotli
 freetype2
 emsdk
 src/build
-*.ttf
+dist/
+!dist/freetype.d.ts
 example/*
 !example/index.html
 !example/test.html
 !example/test.js
-!example/ft.d.ts
 !example/example.js
