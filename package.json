@@ -1,0 +1,25 @@
+{
+  "name": "freetype-wasm",
+  "version": "0.0.1",
+  "description": "FreeType WASM wrapper for browsers and Deno",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ciantic/freetype-wasm.git"
+  },
+  "keywords": [
+    "freetype",
+    "wasm"
+  ],
+  "author": "Jari O. O. Pennanen",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Ciantic/freetype-wasm/issues"
+  },
+  "homepage": "https://github.com/Ciantic/freetype-wasm#readme",
+  "files": [
+    "README.md",
+    "dist/freetype.js",
+    "dist/freetype.wasm",
+    "dist/freetype.d.ts"
+  ]
+}

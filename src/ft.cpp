@@ -643,38 +643,22 @@ EMSCRIPTEN_BINDINGS(my_module)
 
     constant("FT_STYLE_FLAG_ITALIC", FT_STYLE_FLAG_ITALIC);
     constant("FT_STYLE_FLAG_BOLD", FT_STYLE_FLAG_BOLD);
+
+    constant("FT_PIXEL_MODE_NONE", FT_PIXEL_MODE_NONE);
+    constant("FT_PIXEL_MODE_MONO", FT_PIXEL_MODE_MONO);
+    constant("FT_PIXEL_MODE_GRAY", FT_PIXEL_MODE_GRAY);
+    constant("FT_PIXEL_MODE_GRAY2", FT_PIXEL_MODE_GRAY2);
+    constant("FT_PIXEL_MODE_GRAY4", FT_PIXEL_MODE_GRAY4);
+    constant("FT_PIXEL_MODE_LCD", FT_PIXEL_MODE_LCD);
+    constant("FT_PIXEL_MODE_LCD_V", FT_PIXEL_MODE_LCD_V);
+    constant("FT_PIXEL_MODE_BGRA", FT_PIXEL_MODE_BGRA);
+    constant("FT_PIXEL_MODE_MAX", FT_PIXEL_MODE_MAX);
 }
 
 namespace emscripten
 {
     namespace internal
     {
-        /* This does not work...
-        template <typename T, typename V, typename P, typename A>
-        struct BindingType<std::map<T, V, P, A>>
-        {
-            using ValBinding = BindingType<val>;
-            using WireType = ValBinding::WireType;
-
-            static WireType toWireType(const std::map<T, V, P, A> &vec)
-            {
-                return ValBinding::toWireType(val::null());
-            }
-
-            static std::map<T, V, P, A> fromWireType(WireType value)
-            {
-                return std::map<T, V, P, A>();
-                // return vecFromJSArray<T>(ValBinding::fromWireType(value));
-            }
-        };
-
-        template <typename T, typename V, typename P, typename A>
-        struct TypeID<T, std::map<T, V, P, A>>
-        {
-            static constexpr TYPEID get() { return TypeID<val>::get(); }
-        };
-        */
-
         // Automatic conversion of std::vector<T> to JS array
         // https://github.com/emscripten-core/emscripten/issues/11070#issuecomment-717675128
         template <typename T, typename Allocator>
