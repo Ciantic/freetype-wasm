@@ -18,7 +18,7 @@ functional.
 ## Run tests with deno
 
 ```bash
-./deno run --allow-net example/test.js
+./test.sh
 ```
 
 ## TODO
