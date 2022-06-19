@@ -200,7 +200,7 @@ export interface FT_FaceRec {
   max_advance_height: number;
   underline_position: number;
   underline_thickness: number;
-  size: number;
+  size: FT_SizeRec;
   family_name: string;
   style_name: string;
   charmaps: FT_CharMapRec[];
