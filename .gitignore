@@ -4,8 +4,3 @@ emsdk
 src/build
 dist/
 !dist/freetype.d.ts
-example/*
-!example/index.html
-!example/test.html
-!example/test.js
-!example/example.js
