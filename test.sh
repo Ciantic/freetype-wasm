@@ -1,3 +1,3 @@
 #!/bin/bash
 
-deno run --allow-read --allow-net ./example/test.js
+deno run --allow-read --allow-net ./test/test.js
