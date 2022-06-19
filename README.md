@@ -20,8 +20,8 @@ WOFF2 support the library is built with
 ./build.sh # Builds the WASM library
 ```
 
-Build.sh generates `example/freetype.js` making the example directory
-functional.
+Build.sh generates `dist/freetype.js`, and `dist/freetype.wasm` making the
+example directory functional.
 
 ## Run tests with deno
 
