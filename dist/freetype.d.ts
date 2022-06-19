@@ -1,10 +1,10 @@
 /**
  * Create FreeType library instance.
- * 
+ *
  * @param initial Provide locateFile method if you want to load WASM from a CDN, e.g. `locateFile(path) => "https://cdn.jsdelivr.net/npm/freetype-wasm@0/dist/freetype.wasm"`
  */
 export default function Freetype(initial?: {
-  locateFile: (path: "freetype.wasm") => string,
+  locateFile: (path: "freetype.wasm") => string;
 }): Promise<FreetypeModule>;
 
 interface FreetypeModule {
@@ -114,6 +114,16 @@ interface FreetypeModule {
 
   FT_STYLE_FLAG_ITALIC: number;
   FT_STYLE_FLAG_BOLD: number;
+
+  FT_PIXEL_MODE_NONE: number;
+  FT_PIXEL_MODE_MONO: number;
+  FT_PIXEL_MODE_GRAY: number;
+  FT_PIXEL_MODE_GRAY2: number;
+  FT_PIXEL_MODE_GRAY4: number;
+  FT_PIXEL_MODE_LCD: number;
+  FT_PIXEL_MODE_LCD_V: number;
+  FT_PIXEL_MODE_BGRA: number;
+  FT_PIXEL_MODE_MAX: number;
 }
 
 export interface FT_Glyph_Metrics {
