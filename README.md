@@ -41,12 +41,11 @@ const FreeType = await FreeTypeInit();
 
 See [example.js](example/example.js) for how to render text to canvas.
 
-## Usage with Node
+## Usage with Node web apps like React
 
-This is an ES module, but it works with Node projects which target the web like
-React or Solid apps built with Node. Since FreeType JS wrapper fetches the WASM
-file it won't work automatically as the various bundlers don't understand how to
-bundle the WASM file as relative path with the JS file.
+Library works with Node projects which target the web like React. Since FreeType
+JS wrapper fetches the WASM file asynchronously it might not work automatically
+as the various bundlers have different ways to configure the depenencies.
 
 Currently it's possible to use the library in Node web projects like this:
 
@@ -58,11 +57,30 @@ Then import and initialize the WASM module from CDN, e.g. JSDelivr:
 
 ```javascript
 import FreeTypeInit from "freetype-wasm/dist/freetype.js";
-
 const FreeType = await FreeTypeInit({
   locateFile: (path) =>
     "https://cdn.jsdelivr.net/npm/freetype-wasm@0.0.3/dist/freetype.wasm",
 });
+
+```
+
+Depending on your bundler you might get URL to the bundled WASM file also. I haven't tried with Create React App template, but it could be similar as next example with Vite.
+
+## Usage with Vite bundler like in Solid
+
+```bash
+npm install freetype-wasm
+```
+
+Then fetch the URL for your bundler using special import with `?url` suffix:
+
+```typescript
+import FreeTypeInit from "freetype-wasm/dist/freetype.js";
+import wasmUrl from "freetype-wasm/dist/freetype.wasm?url";
+const Freetype = await FreeTypeInit({
+  locateFile: (path) => wasmUrl,
+});
+
 ```
 
 ## TODO
