@@ -1,4 +1,11 @@
-export default function Freetype(): Promise<FreetypeModule>;
+/**
+ * Create FreeType library instance.
+ * 
+ * @param initial Provide locateFile method if you want to load WASM from a CDN, e.g. `locateFile(path) => "https://cdn.jsdelivr.net/npm/freetype-wasm@0/dist/freetype.wasm"`
+ */
+export default function Freetype(initial?: {
+  locateFile: (path: "freetype.wasm") => string,
+}): Promise<FreetypeModule>;
 
 interface FreetypeModule {
   LoadFontFromBytes: (bytes: Uint8Array | number[]) => FT_FaceRec[];
