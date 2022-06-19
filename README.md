@@ -34,7 +34,7 @@ example directory functional.
 You need to do this inside a module to initiate the wrapper:
 
 ```javascript
-import FreeTypeInit from "https://cdn.jsdelivr.net/npm/freetype-wasm@0.0.2/dist/freetype.js";
+import FreeTypeInit from "https://cdn.jsdelivr.net/npm/freetype-wasm@0.0.3/dist/freetype.js";
 const FreeType = await FreeTypeInit();
 // ...
 ```
@@ -61,7 +61,7 @@ import FreeTypeInit from "freetype-wasm/dist/freetype.js";
 
 const FreeType = await FreeTypeInit({
   locateFile: (path) =>
-    "https://cdn.jsdelivr.net/npm/freetype-wasm@0.0.2/dist/freetype.wasm",
+    "https://cdn.jsdelivr.net/npm/freetype-wasm@0.0.3/dist/freetype.wasm",
 });
 ```
 
