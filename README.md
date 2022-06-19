@@ -29,9 +29,17 @@ functional.
 ./test.sh
 ```
 
-## Usage with browsers directly
+## Usage with browsers and Deno directly
 
-See [example.js](example/example.js) for simple example how to render.
+You need to do this inside a module to initiate the wrapper:
+
+```javascript
+import FreeTypeInit from "https://cdn.jsdelivr.net/npm/freetype-wasm@0.0.2/dist/freetype.js";
+const FreeType = await FreeTypeInit();
+// ...
+```
+
+See [example.js](example/example.js) for how to render text to canvas.
 
 ## Usage with Node
 
