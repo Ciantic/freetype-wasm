@@ -10,25 +10,6 @@ options from [FreeType repository](https://github.com/freetype/freetype). For
 WOFF2 support the library is built with
 [Google's Brotli](https://github.com/google/brotli) which is MIT licensed.
 
-## Steps to compile
-
-```bash
-./deps.sh # install dependencies
-./build_emsdk.sh
-./build_brotli.sh
-./build_freetype.sh
-./build.sh # Builds the WASM library
-```
-
-Build.sh generates `dist/freetype.js`, and `dist/freetype.wasm` making the
-example directory functional.
-
-## Run tests with deno
-
-```bash
-./test.sh
-```
-
 ## Usage with browsers and Deno directly
 
 You need to do this inside a module to initiate the wrapper:
@@ -81,6 +62,12 @@ const Freetype = await FreeTypeInit({
   locateFile: (path) => wasmUrl,
 });
 
+```
+
+## Run tests with deno
+
+```bash
+./test.sh
 ```
 
 ## TODO
