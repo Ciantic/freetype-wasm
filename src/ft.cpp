@@ -7,9 +7,7 @@
 #include <emscripten/val.h>
 #include <emscripten/bind.h>
 
-FT_Library library;
 FT_Face current_face;
-bool inited = false;
 
 class FontPtr
 {
@@ -54,38 +52,39 @@ public:
 std::map<std::string, std::map<std::string, std::unique_ptr<Font>>>
     face_map;
 
-void Init()
+FT_Library GetOrDeleteLibrary(bool deleteLibrary = false)
 {
-    if (!inited)
+    static bool inited = false;
+    static FT_Library library;
+    if (deleteLibrary)
     {
-        FT_Init_FreeType(&library);
-        inited = true;
+        if (inited)
+        {
+            FT_Done_FreeType(library);
+            inited = false;
+            library = nullptr;
+        }
     }
+    else
+    {
+        if (!inited)
+        {
+            FT_Init_FreeType(&library);
+            inited = true;
+        }
+    }
+    return library;
 }
 
 void Cleanup()
 {
-    // Free up the Font face structs
-    // for (auto &fs : face_map)
-    // {
-    //     for (auto &f : fs.second)
-    //     {
-    //         FT_Done_Face(f.second);
-    //     }
-    // }
-    // face_map.clear();
-
-    // Free the Freetype library
-    if (inited)
-    {
-        FT_Done_FreeType(library);
-        inited = false;
-    }
+    face_map.clear();
+    GetOrDeleteLibrary(true);
 }
 
 std::vector<FT_FaceRec> LoadFontFromBytes(std::vector<unsigned char> font)
 {
-    Init();
+    FT_Library library = GetOrDeleteLibrary();
     FT_Error error;
     std::vector<FT_FaceRec> rtn;
     FT_Face face_temp;
@@ -125,12 +124,9 @@ std::vector<FT_FaceRec> LoadFontFromBytes(std::vector<unsigned char> font)
 void UnloadFont(std::string familyName)
 {
     // Unset current face if it matches
-    if (current_face != NULL)
+    if (current_face != NULL && current_face->family_name == familyName)
     {
-        if (current_face->family_name == familyName)
-        {
-            current_face = NULL;
-        }
+        current_face = NULL;
     }
 
     // Unload faces
