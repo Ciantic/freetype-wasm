@@ -73,3 +73,4 @@ const Freetype = await FreeTypeInit({
 -   [Variable font interface](https://freetype.org/freetype2/docs/reference/ft2-multiple_masters.html)
     not implemented yet
 -   Compile Freetype with Harfbuzz for ligatures and better kerning (?)
+-   `LoadGlyphsFromCharmap` is slow with big font sizes, probably not much to do other than threading.
