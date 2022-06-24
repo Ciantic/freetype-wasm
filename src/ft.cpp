@@ -410,7 +410,7 @@ emscripten::val ImageData_Getter(const FT_Bitmap &v)
     {
         for (size_t i = 0; i < bufsize; i++)
         {
-            // Set the alpha value the 4th byte
+            // Set the alpha value at 4th byte
             rgba[i * 4 + 3] = v.buffer[i];
         }
     }
@@ -427,7 +427,7 @@ emscripten::val ImageData_Getter(const FT_Bitmap &v)
                 const auto bitoffset = x % 8;
                 const auto bitvalue = (buffervalue >> (7 - bitoffset)) & 1;
 
-                // Set the alpha value the 4th byte
+                // Set the alpha value at 4th byte
                 rgba[nthpixel++ * 4 + 3] = 255 * bitvalue;
             }
         }
