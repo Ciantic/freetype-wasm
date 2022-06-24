@@ -15,7 +15,7 @@ WOFF2 support the library is built with
 You need to do this inside a module to initiate the wrapper:
 
 ```javascript
-import FreeTypeInit from "https://cdn.jsdelivr.net/npm/freetype-wasm@0.0.3/dist/freetype.js";
+import FreeTypeInit from "https://cdn.jsdelivr.net/npm/freetype-wasm@0/dist/freetype.js";
 const FreeType = await FreeTypeInit();
 // ...
 ```
@@ -39,10 +39,9 @@ Then import and initialize the WASM module from CDN, e.g. JSDelivr:
 ```javascript
 import FreeTypeInit from "freetype-wasm/dist/freetype.js";
 const FreeType = await FreeTypeInit({
-  locateFile: (path) =>
-    "https://cdn.jsdelivr.net/npm/freetype-wasm@0.0.3/dist/freetype.wasm",
+    locateFile: (path) =>
+        "https://cdn.jsdelivr.net/npm/freetype-wasm@0/dist/freetype.wasm",
 });
-
 ```
 
 Depending on your bundler you might get URL to the bundled WASM file also. I haven't tried with Create React App template, but it could be similar as next example with Vite.
@@ -59,9 +58,8 @@ Then fetch the URL for your bundler using special import with `?url` suffix:
 import FreeTypeInit from "freetype-wasm/dist/freetype.js";
 import wasmUrl from "freetype-wasm/dist/freetype.wasm?url";
 const Freetype = await FreeTypeInit({
-  locateFile: (path) => wasmUrl,
+    locateFile: (path) => wasmUrl,
 });
-
 ```
 
 ## Run tests with deno
@@ -72,6 +70,6 @@ const Freetype = await FreeTypeInit({
 
 ## TODO
 
-- [Variable font interface](https://freetype.org/freetype2/docs/reference/ft2-multiple_masters.html)
-  not implemented yet
-- Compile Freetype with Harfbuzz for ligatures and better kerning (?)
+-   [Variable font interface](https://freetype.org/freetype2/docs/reference/ft2-multiple_masters.html)
+    not implemented yet
+-   Compile Freetype with Harfbuzz for ligatures and better kerning (?)
