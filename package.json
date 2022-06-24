@@ -1,6 +1,6 @@
 {
   "name": "freetype-wasm",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "FreeType WASM wrapper for browsers and Deno",
   "repository": {
     "type": "git",
