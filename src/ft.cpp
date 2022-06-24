@@ -11,11 +11,48 @@ FT_Library library;
 FT_Face current_face;
 bool inited = false;
 
-// FamilyName -> StyleName -> FT_Face
-std::map<std::string, std::map<std::string, FT_Face>> face_map;
+class FontPtr
+{
+public:
+    FontPtr(std::vector<unsigned char> font)
+    {
+        // Store the font to a wasm memory
+        size = font.size();
+        bytes = (FT_Bytes)::malloc(size);
+        ::memcpy((void *)bytes, font.data(), size);
+    }
 
-// FamilyName -> Byte arrays
-std::map<std::string, std::vector<FT_Bytes>> face_ptrs;
+    ~FontPtr()
+    {
+        // printf("free bytes?\n");
+        ::free((void *)bytes);
+    }
+
+    signed long size;
+    FT_Bytes bytes;
+};
+
+class Font
+{
+public:
+    Font(FT_Face ft_face, std::shared_ptr<FontPtr> ptr)
+    {
+        face = ft_face;
+        bytes = ptr;
+    }
+
+    ~Font()
+    {
+        // printf("free font?\n");
+        FT_Done_Face(face);
+    }
+    FT_Face face;
+    std::shared_ptr<FontPtr> bytes;
+};
+
+// FamilyName -> StyleName -> (FT_Bytes, FT_Face)
+std::map<std::string, std::map<std::string, std::unique_ptr<Font>>>
+    face_map;
 
 void Init()
 {
@@ -29,22 +66,14 @@ void Init()
 void Cleanup()
 {
     // Free up the Font face structs
-    for (auto &fs : face_map)
-    {
-        for (auto &f : fs.second)
-        {
-            FT_Done_Face(f.second);
-        }
-    }
-    face_map.clear();
-
-    // Free up the font bytes
-    for (auto &bs : face_ptrs)
-    {
-        for (auto &p : bs.second)
-            ::free((void *)p);
-    }
-    face_ptrs.clear();
+    // for (auto &fs : face_map)
+    // {
+    //     for (auto &f : fs.second)
+    //     {
+    //         FT_Done_Face(f.second);
+    //     }
+    // }
+    // face_map.clear();
 
     // Free the Freetype library
     if (inited)
@@ -56,21 +85,18 @@ void Cleanup()
 
 std::vector<FT_FaceRec> LoadFontFromBytes(std::vector<unsigned char> font)
 {
+    Init();
     FT_Error error;
     std::vector<FT_FaceRec> rtn;
     FT_Face face_temp;
 
     // Store the font to a wasm memory
-    signed long size = font.size();
-    FT_Bytes ptr = (FT_Bytes)::malloc(size);
-    ::memcpy((void *)ptr, font.data(), size);
-    Init();
+    auto fns = std::make_shared<FontPtr>(font);
 
     // Get num of faces
-    error = FT_New_Memory_Face(library, ptr, size, -1, &face_temp);
+    error = FT_New_Memory_Face(library, fns->bytes, fns->size, -1, &face_temp);
     if (error)
     {
-        ::free((void *)ptr);
         fprintf(stderr, "FreeType: FT_New_Memory_Face (face index -1) failed.\n");
         return rtn;
     }
@@ -80,35 +106,17 @@ std::vector<FT_FaceRec> LoadFontFromBytes(std::vector<unsigned char> font)
     // Iterate faces stored in the font
     for (int i = 0; i < num_faces; i++)
     {
+
         FT_Face ft_face;
-        error = FT_New_Memory_Face(library, ptr, size, i, &ft_face);
+        error = FT_New_Memory_Face(library, fns->bytes, fns->size, i, &ft_face);
         if (error)
         {
             fprintf(stderr, "FreeType: FT_New_Memory_Face (face index %d) failed.\n", i);
-            ::free((void *)ptr);
             return rtn;
         }
 
-        // If family and style name is already loaded then bail out
-        if (face_map[ft_face->family_name][ft_face->style_name] != 0)
-        {
-            fprintf(stderr, "FreeType: Font '%s' with style '%s' already loaded.\n", ft_face->family_name, ft_face->style_name);
-            FT_Done_Face(ft_face);
-            ::free((void *)ptr);
-            return rtn;
-        }
-
-        // Store the font to memory
-        if (i == 0)
-        {
-            face_ptrs[ft_face->family_name].push_back(ptr);
-        }
-
-        face_map[ft_face->family_name][ft_face->style_name] = ft_face;
+        face_map[ft_face->family_name][ft_face->style_name] = std::make_unique<Font>(ft_face, fns);
         rtn.push_back(*ft_face);
-
-        // Note: each face is left in the memory, no FT_Done_Face is called. To
-        // free the memory, one must call `UnloadFont` manually.
     }
 
     return rtn;
@@ -126,29 +134,17 @@ void UnloadFont(std::string familyName)
     }
 
     // Unload faces
-    auto &faces = face_map[familyName];
-    for (auto it = faces.begin(); it != faces.end(); it++)
-    {
-        FT_Done_Face(it->second);
-    }
     face_map.erase(familyName);
-
-    // Restore font memory
-    auto &mems = face_ptrs[familyName];
-    for (auto mem : mems)
-    {
-        ::free((void *)mem);
-    }
-    face_ptrs.erase(familyName);
 }
 
 emscripten::val SetFont(std::string faceName, std::string styleName)
 {
-    current_face = face_map[faceName][styleName];
-    if (current_face == NULL)
+    auto ptr = face_map[faceName][styleName].get();
+    if (ptr == nullptr)
     {
         return emscripten::val::null();
     }
+    current_face = face_map[faceName][styleName]->face;
     return emscripten::val(*current_face);
 }
 

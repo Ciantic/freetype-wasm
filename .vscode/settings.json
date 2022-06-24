@@ -99,7 +99,19 @@
     "deque": "cpp",
     "set": "cpp",
     "unordered_set": "cpp",
-    "filesystem": "cpp"
+    "filesystem": "cpp",
+    "codecvt": "cpp",
+    "complex": "cpp",
+    "condition_variable": "cpp",
+    "fstream": "cpp",
+    "iostream": "cpp",
+    "shared_mutex": "cpp",
+    "*.tcc": "cpp",
+    "memory_resource": "cpp",
+    "numeric": "cpp",
+    "random": "cpp",
+    "cinttypes": "cpp",
+    "future": "cpp"
   },
   "terminal.integrated.defaultProfile.windows": "Ubuntu (WSL)"
 }
