@@ -20,6 +20,12 @@
             "type": "shell",
             "group": "test",
             "command": "./test.sh"
+        },
+        {
+            "label": "benchmark",
+            "type": "shell",
+            "group": "test",
+            "command": "./benchmark.sh"
         }
     ]
 }
